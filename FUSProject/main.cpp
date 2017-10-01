@@ -13,6 +13,8 @@ enum MenuNames
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 void AddMenus(HWND);
 
+bool mouseButtonDown;
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	HWND hwnd;
@@ -46,9 +48,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		AddMenus(hWnd);
 		break;
-	//case WM_LBUTTONUP:
-		//MessageBox(hWnd, L"Вы кликнули!", L"Cобытие", 0);
-		//break;
+	case WM_LBUTTONDOWN:
+		mouseButtonDown = true;
+		break;
+	case WM_LBUTTONUP:
+		mouseButtonDown = false;
+		break;
+	case WM_MOUSEMOVE:
+		if (mouseButtonDown)
+		{
+			int xPos = GET_X_LPARAM(lParam);
+			int yPos = GET_Y_LPARAM(lParam);
+		}
+		break;
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) 
 		{
