@@ -1,5 +1,6 @@
-#include "windows.h"
-#include "windowsx.h"
+#include <windows.h>
+#include <windowsx.h>
+#include <Commctrl.h>
 
 enum MenuNames
 {
@@ -10,10 +11,24 @@ enum MenuNames
 	DEBUG_OPEN_FILE
 };
 
+enum TrackBarNames
+{
+	TRACKBARX = 10,
+	TRACKBARY,
+	TRACKBARZ,
+	TRACKBARALPHA,
+};
+
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 void AddMenus(HWND);
+HWND WINAPI CreateTrackbar(HWND hwndDlg, int posX, int posY, int sizeX, int sizeY, TrackBarNames name, int range);
 
 bool mouseButtonDown;
+HINSTANCE globalhInst;
+HWND hwndTrackX;
+HWND hwndTrackY;
+HWND hwndTrackZ;
+HWND hwndTrackA;
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -30,6 +45,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	hwnd = CreateWindow(L"FUS Project", L"FUS Project", WS_OVERLAPPEDWINDOW,
 		10, 10, 600, 480, NULL, NULL, hInstance, NULL);
 	nCmdShow = SW_MAXIMIZE;
+
+	globalhInst = hInstance;
+
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 	while (GetMessage(&msg, NULL, 0, 0))
@@ -43,10 +61,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	int position;
+
 	switch (message)
 	{
 	case WM_CREATE:
 		AddMenus(hWnd);
+		hwndTrackX = CreateTrackbar(hWnd, 1500, 20, 200, 30, TRACKBARX, 50);
+		hwndTrackY = CreateTrackbar(hWnd, 1500, 50, 200, 30, TRACKBARY, 50);
+		hwndTrackZ = CreateTrackbar(hWnd, 1500, 80, 200, 30, TRACKBARZ, 50);
+		hwndTrackA = CreateTrackbar(hWnd, 1500, 110, 200, 30, TRACKBARALPHA, 50);
 		break;
 	case WM_LBUTTONDOWN:
 		mouseButtonDown = true;
@@ -74,7 +98,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ofn.lpstrFile = (LPWSTR)szFile;
 			ofn.lpstrFile[0] = '\0';
 			ofn.nMaxFile = sizeof(szFile);
-			ofn.lpstrFilter = L"All\0*.*\0Text\0*.TXT\0";
+			ofn.lpstrFilter = NULL;//L"All\0*.*\0Text\0*.TXT\0";
 			ofn.nFilterIndex = 1;
 			ofn.lpstrFileTitle = NULL;
 			ofn.nMaxFileTitle = 0;
@@ -86,6 +110,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 
 			break;
+		}
+		break;
+	case WM_HSCROLL:
+		if (LOWORD(wParam) == SB_THUMBPOSITION)
+		{
+			position = HIWORD(wParam);
+			if ((HWND)lParam == hwndTrackX)
+			{
+				//position = position + 1;
+			}
+			else if ((HWND)lParam == hwndTrackY)
+			{
+				//position = position + 1;
+
+			}
+			else if ((HWND)lParam == hwndTrackZ)
+			{
+				//position = position + 2;
+			}
+			else if ((HWND)lParam == hwndTrackA)
+			{
+				//position = position + 5;
+			}
 		}
 		break;
 	case WM_DESTROY:
@@ -119,3 +166,41 @@ void AddMenus(HWND hwnd)
 	AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hMenuDebug, L"&Debug");
 	SetMenu(hwnd, hMenubar);
 }
+
+
+HWND WINAPI CreateTrackbar(HWND hwndDlg, int posX, int posY, int sizeX, int sizeY, TrackBarNames name, int range)
+{
+	HWND hwndTrack = CreateWindowEx(
+		0,                               // no extended styles 
+		TRACKBAR_CLASS,                  // class name 
+		L"Trackbar",                 // title (caption) 
+		WS_CHILD |
+		WS_VISIBLE | TBS_NOTICKS,			// style 
+		posX, posY,                          // position 
+		sizeX, sizeY,                         // size 
+		hwndDlg,                         // parent window 
+		(HMENU)name,							 // control identifier 
+		globalhInst,                         // instance 
+		NULL                             // no WM_CREATE parameter 
+	);
+
+	SendMessage(hwndTrack, TBM_SETRANGE,
+		(WPARAM)TRUE,                   // redraw flag 
+		(LPARAM)MAKELONG(0, range));  // min. & max. positions
+
+	SendMessage(hwndTrack, TBM_SETPAGESIZE,
+		0, (LPARAM)1);                  // new page size 
+
+	SendMessage(hwndTrack, TBM_SETSEL,
+		(WPARAM)FALSE,                  // redraw flag 
+		(LPARAM)MAKELONG(0, 0));
+
+	SendMessage(hwndTrack, TBM_SETPOS,
+		(WPARAM)TRUE,                   // redraw flag 
+		(LPARAM)0);
+
+	SetFocus(hwndTrack);
+
+	return hwndTrack;
+}
+
