@@ -29,6 +29,7 @@ HWND hwndTrackX;
 HWND hwndTrackY;
 HWND hwndTrackZ;
 HWND hwndTrackA;
+RECT window;
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -42,7 +43,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	w.hbrBackground = GetStockBrush(WHITE_BRUSH);
 	w.lpszClassName = L"FUS Project";
 	RegisterClass(&w);
-	hwnd = CreateWindow(L"FUS Project", L"FUS Project", WS_OVERLAPPEDWINDOW,
+	hwnd = CreateWindow(L"FUS Project", L"FUS Project", WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZE, 
 		10, 10, 600, 480, NULL, NULL, hInstance, NULL);
 	nCmdShow = SW_MAXIMIZE;
 
@@ -62,15 +63,51 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int position;
+	PAINTSTRUCT ps;
+	HDC hdc;
 
 	switch (message)
 	{
 	case WM_CREATE:
 		AddMenus(hWnd);
-		hwndTrackX = CreateTrackbar(hWnd, 1500, 20, 200, 30, TRACKBARX, 50);
-		hwndTrackY = CreateTrackbar(hWnd, 1500, 50, 200, 30, TRACKBARY, 50);
-		hwndTrackZ = CreateTrackbar(hWnd, 1500, 80, 200, 30, TRACKBARZ, 50);
-		hwndTrackA = CreateTrackbar(hWnd, 1500, 110, 200, 30, TRACKBARALPHA, 50);
+		break;
+	case WM_PAINT:
+		hdc = GetDC(hWnd);
+		BeginPaint(hWnd, &ps);
+		GetWindowRect(hWnd, &window);
+		Rectangle(ps.hdc, window.left + 25, window.top + 25, window.right - 400, window.bottom - 100);
+		hwndTrackX = CreateTrackbar(hWnd, window.right - 280, 20, 200, 30, TRACKBARX, 50);
+		hwndTrackY = CreateTrackbar(hWnd, window.right - 280, 60, 200, 30, TRACKBARY, 50);
+		hwndTrackZ = CreateTrackbar(hWnd, window.right - 280, 100, 200, 30, TRACKBARZ, 50);
+		hwndTrackA = CreateTrackbar(hWnd, window.right - 280, 140, 200, 30, TRACKBARALPHA, 50);
+		RECT textRect;
+		textRect.left = window.right - 320;
+
+		textRect.top = 20;
+		textRect.right = textRect.left + 40;
+		textRect.bottom = textRect.top + 30;
+		//Rectangle(ps.hdc, textRect.left, textRect.top, textRect.right, textRect.bottom);
+		DrawText(hdc, L"X", 2, &textRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+		textRect.top = 60;
+		textRect.right = textRect.left + 40;
+		textRect.bottom = textRect.top + 30;
+		//Rectangle(ps.hdc, textRect.left, textRect.top, textRect.right, textRect.bottom);
+		DrawText(hdc, L"Y", 2, &textRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+		textRect.top = 100;
+		textRect.right = textRect.left + 40;
+		textRect.bottom = textRect.top + 30;
+		//Rectangle(ps.hdc, textRect.left, textRect.top, textRect.right, textRect.bottom);
+		DrawText(hdc, L"Z", 2, &textRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+
+		textRect.top = 140;
+		textRect.left = window.right - 390;
+		textRect.right = textRect.left + 100;
+		textRect.bottom = textRect.top + 30;
+		//Rectangle(ps.hdc, textRect.left, textRect.top, textRect.right, textRect.bottom);
+		DrawText(hdc, L"Прозрачность", 12, &textRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+		EndPaint(hWnd, &ps);
 		break;
 	case WM_LBUTTONDOWN:
 		mouseButtonDown = true;
@@ -83,7 +120,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			int xPos = GET_X_LPARAM(lParam);
 			int yPos = GET_Y_LPARAM(lParam);
+			//проверка, в какой части окна находится мышь
+
 		}
+		break;
+	case WM_MOUSEWHEEL:
 		break;
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) 
@@ -174,7 +215,7 @@ HWND WINAPI CreateTrackbar(HWND hwndDlg, int posX, int posY, int sizeX, int size
 		0,                               // no extended styles 
 		TRACKBAR_CLASS,                  // class name 
 		L"Trackbar",                 // title (caption) 
-		WS_CHILD |
+		WS_CHILD | 
 		WS_VISIBLE | TBS_NOTICKS,			// style 
 		posX, posY,                          // position 
 		sizeX, sizeY,                         // size 
