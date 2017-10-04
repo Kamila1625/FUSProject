@@ -2,6 +2,8 @@
 #include <windowsx.h>
 #include <Commctrl.h>
 
+//CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "FUSProject.exe.manifest"
+
 enum MenuNames
 {
 	MENU_3D_WINDOW,
@@ -31,6 +33,8 @@ HWND hwndTrackZ;
 HWND hwndTrackA;
 RECT window;
 
+HBRUSH  hbrBkgnd;
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	HWND hwnd;
@@ -43,7 +47,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	w.hbrBackground = GetStockBrush(WHITE_BRUSH);
 	w.lpszClassName = L"FUS Project";
 	RegisterClass(&w);
-	hwnd = CreateWindow(L"FUS Project", L"FUS Project", WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZE, 
+	hwnd = CreateWindow(L"FUS Project", L"FUS Project", WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZE,
 		10, 10, 600, 480, NULL, NULL, hInstance, NULL);
 	nCmdShow = SW_MAXIMIZE;
 
@@ -76,10 +80,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		BeginPaint(hWnd, &ps);
 		GetWindowRect(hWnd, &window);
 		Rectangle(ps.hdc, window.left + 25, window.top + 25, window.right - 400, window.bottom - 100);
-		hwndTrackX = CreateTrackbar(hWnd, window.right - 280, 20, 200, 30, TRACKBARX, 50);
-		hwndTrackY = CreateTrackbar(hWnd, window.right - 280, 60, 200, 30, TRACKBARY, 50);
-		hwndTrackZ = CreateTrackbar(hWnd, window.right - 280, 100, 200, 30, TRACKBARZ, 50);
-		hwndTrackA = CreateTrackbar(hWnd, window.right - 280, 140, 200, 30, TRACKBARALPHA, 50);
+		hwndTrackX = CreateTrackbar(hWnd, window.right - 280, 20, 200, 25, TRACKBARX, 50);
+		hwndTrackY = CreateTrackbar(hWnd, window.right - 280, 60, 200, 25, TRACKBARY, 50);
+		hwndTrackZ = CreateTrackbar(hWnd, window.right - 280, 100, 200, 25, TRACKBARZ, 50);
+		hwndTrackA = CreateTrackbar(hWnd, window.right - 280, 140, 200, 25, TRACKBARALPHA, 50);
+
+
 		RECT textRect;
 		textRect.left = window.right - 320;
 
@@ -109,6 +115,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DrawText(hdc, L"Прозрачность", 12, &textRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 		EndPaint(hWnd, &ps);
 		break;
+	case WM_CTLCOLORSTATIC:
+	{
+		HDC hdcStatic = (HDC)wParam;
+		SetTextColor(hdcStatic, RGB(255, 255, 255));
+		SetBkColor(hdcStatic, RGB(0, 0, 0));
+
+		if (hbrBkgnd == NULL)
+		{
+			hbrBkgnd = CreateSolidBrush(RGB(255, 255, 255));
+		}
+		return (INT_PTR)hbrBkgnd;
+	}
 	case WM_LBUTTONDOWN:
 		mouseButtonDown = true;
 		break;
