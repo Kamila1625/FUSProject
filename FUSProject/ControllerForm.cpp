@@ -20,7 +20,7 @@ ControllerForm::ControllerForm(ModelGL* model) : model(model)
 int ControllerForm::create()
 {
     // initialize all controls
-    //view->initControls(handle);
+    initControls(handle);
 
     // place the opengl form dialog in right place, bottome of the opengl rendering window
     //RECT rect = {0, 0, 4, 8};
@@ -260,6 +260,9 @@ void ControllerForm::initControls(HWND handle)
 	addSphere.set(handle, ID_ADD);
 	delSphere.set(handle, ID_DEL);
 
+	radioCube.set(handle, IDC_RADIO2);
+	radioSlice.set(handle, IDC_RADIO1);
+
 	trackbarXLeft.set(handle, IDC_SLIDER1);
 	trackbarXRight.set(handle, IDC_SLIDER5);
 	trackbarYLeft.set(handle, IDC_SLIDER2);
@@ -276,6 +279,8 @@ void ControllerForm::initControls(HWND handle)
 	trackbarSizeX.set(handle, IDC_SLIDER13);
 	trackbarSizeY.set(handle, IDC_SLIDER14);
 	trackbarSizeZ.set(handle, IDC_SLIDER15);
+
+	radioCube.check();
 
 	trackbarPhi.setRange(-90, 90);
 	trackbarPsy.setRange(-90, 90);
@@ -304,12 +309,12 @@ void ControllerForm::initControls(HWND handle)
 
 	trackbarPhi.setPos(0);
 	trackbarPsy.setPos(0);
-	trackbarPosX.setPos(250);
-	trackbarPosY.setPos(250);
-	trackbarPosZ.setPos(250);
-	trackbarSizeX.setPos(250);
-	trackbarSizeY.setPos(250);
-	trackbarSizeZ.setPos(250);
+	trackbarPosX.setPos(249);
+	trackbarPosY.setPos(249);
+	trackbarPosZ.setPos(249);
+	trackbarSizeX.setPos(249);
+	trackbarSizeY.setPos(249);
+	trackbarSizeZ.setPos(249);
 
 
 }

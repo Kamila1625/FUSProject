@@ -23,6 +23,10 @@
        // ViewFormGL* view;                           // pointer to view component
 		Button addSphere;
 		Button delSphere;
+
+		RadioButton radioSlice;
+		RadioButton radioCube;
+
 		Trackbar trackbarXLeft;
 		Trackbar trackbarXRight;
 		Trackbar trackbarYLeft;
