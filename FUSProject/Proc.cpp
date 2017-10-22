@@ -45,34 +45,15 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		//SetWindowLongPtr(hWnd, GWLP_USERDATA, NULL);
 		//break;
 	case WM_CREATE:
+		returnValue = ctrl->create();
 		break;
 	case WM_SIZE:
-	{
-		RECT rect;
-		GetWindowRect(hwndForm, &rect);
-		int formHeight = rect.bottom - rect.top;
-		int formWidth = rect.right - rect.left;
-
-		GetWindowRect(hwndGL, &rect);
-		int glWidth = rect.right - rect.left;
-		int glHeight = rect.bottom - rect.top;
-
-		int width = LOWORD(lParam);
-		int height = HIWORD(lParam);
-		// resize the height of glWin and reposition glDialog & status bar
-		//int glHeight = height - formHeight;
-		SetWindowPos(hwndGL, 0, 10, 10, width - formWidth, height, SWP_NOZORDER);
-		//::SetWindowPos(formHandle, 0, 0, glHeight, width, formHeight, SWP_NOZORDER);
-		SetWindowPos(hwndForm, 0, width - formWidth, 10, formWidth, formHeight, SWP_NOZORDER);
-		InvalidateRect(hwndForm, 0, TRUE);      // force to repaint
-		//::SendMessage(statusHandle, WM_SIZE, 0, 0); // automatically resize width, so send 0s
-		//::InvalidateRect(statusHandle, 0, FALSE);   // force to repaint
-
-													// display OpenGL window dimension on the status bar
-	}
+		returnValue = ctrl->size(LOWORD(lParam), HIWORD(lParam), (int)wParam);
+												
 		break;
 	case WM_PAINT:
-
+		ctrl->paint();
+		returnValue = ::DefWindowProc(hWnd, message, wParam, lParam);
 		break;
 	case WM_CLOSE:
 		returnValue = ctrl->close();
@@ -185,9 +166,12 @@ LRESULT CALLBACK WndProcGL(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		Rectangle(ps.hdc, window.left + 5, window.top + 5, window.right - 10, window.bottom - 10);
 		DefWindowProc(hWnd, message, wParam, lParam);
 	}*/
-
+		ctrl->paint();
 		break;
-
+	case WM_SYSCOMMAND:
+		//returnValue = ctrl->sysCommand(wParam, lParam);
+		returnValue = ::DefWindowProc(hWnd, message, wParam, lParam);
+		break;
 	case WM_CLOSE:
 		returnValue = ctrl->close();
 		break;
@@ -301,6 +285,7 @@ INT_PTR CALLBACK FormDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 		break;
 
 	case WM_SIZE:
+		ctrl->size(LOWORD(lParam), HIWORD(lParam), (int)wParam);
 		break;
 
 	default:

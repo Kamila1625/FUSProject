@@ -40,34 +40,76 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	WindowGL glWin(hInstance, L"WindowGL", mainWin.getHandle(), &glCtrl);
 	glWin.setClassStyle(CS_OWNDC);
 	glWin.setWindowStyle(WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-	//glWin.setWidth(300);
-	//glWin.setHeight(300);
-	//SetWindowPos(glWin.getHandle(), 0, 10, 10, 300, 300, SWP_NOZORDER);
+	glWin.setWidth(300);
+	glWin.setHeight(300);
+	//SetWindowPos(glWin.getHandle(), 0, 0, 0, 300, 500, SWP_NOZORDER);
 	glWin.create();
 
 	ControllerForm formCtrl(&modelGL);
 
 	FormDialog dialogWin(hInstance, IDD_DIALOG1, mainWin.getHandle(), &formCtrl);
-	//dialogWin.setWidth(500);
-	//dialogWin.setHeight(300);
-	//SetWindowPos(dialogWin.getHandle(), 0, 310, 10, 560, 300, SWP_NOZORDER);
+	dialogWin.setWidth(500);
+	dialogWin.setHeight(989);
+	//SetWindowPos(dialogWin.getHandle(), 0, 300, 0, 450, 900, SWP_NOZORDER);
 	dialogWin.create();
 
-	SetWindowPos(glWin.getHandle(), 0, 0, 0, 300, 500, SWP_NOZORDER);
-	SetWindowPos(dialogWin.getHandle(), 0, 300, 0, 450, 900, SWP_NOZORDER);
-	SetWindowPos(mainWin.getHandle(), 0, 0, 0, 450, 900, SWP_NOZORDER);
+	//SetWindowPos(glWin.getHandle(), 0, 0, 0, 300, 500, SWP_NOZORDER);
+	//SetWindowPos(dialogWin.getHandle(), 0, 300, 0, 450, 900, SWP_NOZORDER);
+	//SetWindowPos(mainWin.getHandle(), 0, 0, 0, 450, 900, SWP_NOZORDER);
 	
+	globalhInst = hInstance;
+	//hwndMain = mainWin.getHandle();
+	//hwndGL = glWin.getHandle();
+	//hwndForm = dialogWin.getHandle();
+
+	mainCtrl.setGLHandle(glWin.getHandle());
+	mainCtrl.setFormHandle(dialogWin.getHandle());
+
+	RECT rect1;
+	GetWindowRect(glWin.getHandle(), &rect1);
+
+	// place the opengl form dialog in right place, bottome of the opengl rendering window
+	::SetWindowPos(dialogWin.getHandle(), 0, rect1.right + 20, rect1.top, 500, 989, 0);
+
+	// compute height of all sub-windows
+	int height = 0;
+	RECT rect;
+	GetWindowRect(glWin.getHandle(), &rect);      // get size of glWin
+	height += rect.bottom - rect.top;
+	// ::GetWindowRect(glDialog.getHandle(), &rect);   // get size of glDialog
+	// height += rect.bottom - rect.top;
+	// ::GetWindowRect(statusHandle, &rect);           // get size of status bar
+	//  height += rect.bottom - rect.top;
+
+	int width = 0;
+	::GetWindowRect(glWin.getHandle(), &rect);      // get size of glWin
+	width += rect.right - rect.left;
+	::GetWindowRect(dialogWin.getHandle(), &rect);   // get size of glDialog
+	width += rect.right - rect.left;
+	//::GetWindowRect(statusHandle, &rect);           // get size of status bar
+	//width += rect.right - rect.left;
+
+	// resize main window, so all sub windows are fit into the client area of main window
+	DWORD style = (DWORD)::GetWindowLongPtr(mainWin.getHandle(), GWL_STYLE);       // get current window style
+	DWORD styleEx = (DWORD)::GetWindowLongPtr(mainWin.getHandle(), GWL_EXSTYLE);   // get current extended window style
+	rect.left = 0;
+	rect.right = width;
+	rect.top = 0;
+	rect.bottom = height;
+	::AdjustWindowRectEx(&rect, style, TRUE, styleEx);
+	::SetWindowPos(mainWin.getHandle(), 0, 0, 100, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
+
+
+
+
 
 	glWin.show();
 	dialogWin.show();
-	nCmdShow = SW_MAXIMIZE;
-	mainWin.show(nCmdShow);
+	//nCmdShow = SW_MAXIMIZE;
+	mainWin.show(SW_MAXIMIZE);
 	
 
-	globalhInst = hInstance;
-	hwndMain = mainWin.getHandle();
-	hwndGL = glWin.getHandle();
-	hwndForm = dialogWin.getHandle();
+
 
 	int exitCode;
 	HACCEL hAccelTable = 0;

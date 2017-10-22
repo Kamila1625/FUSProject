@@ -9,8 +9,8 @@
         ControllerMain();
         ~ControllerMain() {};
 
-        void setGLHandle(HWND handle)               { glHandle = handle; }
-        void setFormHandle(HWND handle)             { formHandle = handle; }
+        void setGLHandle(HWND handle)               { hwndGL = handle; }
+        void setFormHandle(HWND handle)             { hwndForm = handle; }
 
         int command(int id, int cmd, LPARAM msg);   // for WM_COMMAND
         int close();
@@ -18,9 +18,11 @@
         int destroy();
         int size(int w, int h, WPARAM wParam);      // for WM_SIZE: width, height, type(SIZE_MAXIMIZED...)
 
+		
     private:
-        HWND glHandle;                              // handle of gl window
-        HWND formHandle;                            // handle of form dialog
+		HWND hwndGL;                              // handle of gl window
+		HWND hwndForm;                            // handle of form dialog
+
 
     };
 

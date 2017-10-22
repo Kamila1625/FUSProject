@@ -4,14 +4,10 @@
 
 static bool mouseButtonDown;
 static HINSTANCE globalhInst;
-static HWND hwndTrackX;
-static HWND hwndTrackY;
-static HWND hwndTrackZ;
-static HWND hwndTrackA;
 
-static HWND hwndMain;
-static HWND hwndGL;
-static HWND hwndForm;
+//static HWND hwndMain;
+//static HWND hwndGL;
+//static HWND hwndForm;
 
 static RECT window;
 
