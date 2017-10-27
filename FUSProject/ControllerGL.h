@@ -25,6 +25,9 @@
         int rButtonUp(WPARAM state, int x, int y);
         int mouseMove(WPARAM state, int x, int y);
 
+        int mouseWheel(int state, int delta, int x, int y);
+        int SendData(char* filename);
+
     private:
         void runThread();                           // thread for OpenGL rendering
 

@@ -1,70 +1,52 @@
 #pragma once
+
+#include "CustomRenderer.h"
+
 class ModelGL
 {
+  
 public:
-    ModelGL();
-    ~ModelGL();
+  CustomRenderer *renderer;
+  
+  ModelGL();
+  ~ModelGL();
 
-    void init();                                    // initialize OpenGL states
-    void setCamera(float posX, float posY, float posZ, float targetX, float targetY, float targetZ);
-    void setViewport(int width, int height);
-    void resizeWindow(int width, int height);
-    void draw();
+  int Init(HWND hWnd);
 
-    void setMouseLeft(bool flag) { mouseLeftDown = flag; };
-    void setMouseRight(bool flag) { mouseRightDown = flag; };
-    void setMousePosition(int x, int y) { mouseX = x; mouseY = y; };
-    void setDrawMode(int mode);
-    void animate(bool flag) { animateFlag = flag; };
+  HDC GetDC(void);
 
-    void rotateCamera(int x, int y);
-    void zoomCamera(int dist);
+  HGLRC GetRC(void);
 
-    void setBackgroundRed(float value);             // change background colour
-    void setBackgroundGreen(float value);
-    void setBackgroundBlue(float value);
+  void Render(void);
 
+  void SwapBuffers(void);
 
-	bool createContext(HWND handle, int colorBits, int depthBits, int stencilBits);  // create OpenGL rendering context
-	void closeContext(HWND handle);
-	void swapBuffers();
+  void Close(void);
 
-	HDC getDC() const { return hdc; };
-	HGLRC getRC() const { return hglrc; };
+  void Resize(int w, int h);
 
-protected:
+  void UpdateWheelPos(int wheelPos);
 
-private:
-    // member functions
-    void initLights();                              // add a white light ti scene
-    unsigned int createEarthDL();
-    unsigned int loadTextureBmp(const char *filename);
+  void Response();
 
-    // members
-    int windowWidth;
-    int windowHeight;
-    bool animateFlag;                               // on/off animation
-    bool changeDrawMode;
-    int drawMode;
-    unsigned int listId;                            // display list ID
-    bool mouseLeftDown;
-    bool mouseRightDown;
-    int mouseX;
-    int mouseY;
-    float cameraAngleX;
-    float cameraAngleY;
-    float cameraDistance;
-    float bgColor[4];
-    bool bgFlag;
-    bool windowResized;
-    unsigned char* frameBuffer;                     // framebuffer to store RGBA color
-    int bufferSize;                                 // framebuffer size in bytes
+  void UpdateMouseLButton(bool value);
 
-													// member functions
-	static bool setPixelFormat(HDC hdc, int colorBits, int depthBits, int stencilBits);
-	static int findPixelFormat(HDC hdc, int colorbits, int depthBits, int stencilBits); // return best matched format ID
+  void UpdateMouseRButton(bool value);
 
-	HDC hdc;                                        // handle to device context
-	HGLRC hglrc;                                    // handle to OpenGL rendering context
+  void LoadData(char* filename);
+
+  void SetRect(int w, int h);
+
+  void SetAlpha(float alpha);
+
+  void SetClipPlaneL(float x, float y, float z);
+
+  void SetClipPlaneR(float x, float y, float z);
+
+  void SetSpherePos(float x, float y, float z);
+
+  void SetSphereScale(float x, float y, float z);
+
+  void SetSphereRot(float x, float y);
 };
 

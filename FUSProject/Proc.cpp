@@ -1,13 +1,14 @@
 #include "proc.h"
 #include <windowsx.h>
+#include <stdlib.h>
 #include <Commctrl.h>
 #include "resource.h"
 
 LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	int position;
-	PAINTSTRUCT ps;
-	HDC hdc;
+	//int position;
+	//PAINTSTRUCT ps;
+	//HDC hdc;
 	LRESULT returnValue = 0;
 
 	// find controller associated with window handle
@@ -44,72 +45,76 @@ LRESULT CALLBACK WndProcMain(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 	//case WM_NCCREATE:
 		//SetWindowLongPtr(hWnd, GWLP_USERDATA, NULL);
 		//break;
+
 	case WM_CREATE:
 		returnValue = ctrl->create();
 		break;
+
 	case WM_SIZE:
-		returnValue = ctrl->size(LOWORD(lParam), HIWORD(lParam), (int)wParam);
-												
+		returnValue = ctrl->size(LOWORD(lParam), HIWORD(lParam), (int)wParam);												
 		break;
+
 	case WM_PAINT:
 		ctrl->paint();
 		returnValue = ::DefWindowProc(hWnd, message, wParam, lParam);
 		break;
+
 	case WM_CLOSE:
 		returnValue = ctrl->close();
 		break;
 	
 	case WM_LBUTTONDOWN:
-		mouseButtonDown = true;
+    SetFocus(hWnd);		
 		break;
-	case WM_LBUTTONUP:
-		mouseButtonDown = false;
-		break;
-	case WM_MOUSEMOVE:
-		if (mouseButtonDown)
-		{
-			int xPos = GET_X_LPARAM(lParam);
-			int yPos = GET_Y_LPARAM(lParam);
-			//проверка, в какой части окна находится мышь
 
-		}
+	case WM_LBUTTONUP:
+    SetFocus(hWnd);		
 		break;
+
+	case WM_MOUSEMOVE:
+		break;
+
 	case WM_MOUSEWHEEL:
+    returnValue = ::DefWindowProc(hWnd, message, wParam, lParam);
 		break;
+
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
 		case ID_DEBUG_OPENFILE:
-			OPENFILENAME ofn;
-			HANDLE hf;
-			char szFile[100];
-			ZeroMemory(&ofn, sizeof(ofn));
-			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = hWnd;
-			ofn.lpstrFile = (LPWSTR)szFile;
-			ofn.lpstrFile[0] = '\0';
-			ofn.nMaxFile = sizeof(szFile);
-			ofn.lpstrFilter = NULL;//L"All\0*.*\0Text\0*.TXT\0";
-			ofn.nFilterIndex = 1;
-			ofn.lpstrFileTitle = NULL;
-			ofn.nMaxFileTitle = 0;
-			ofn.lpstrInitialDir = NULL;
-			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-			if (GetOpenFileName(&ofn) == TRUE)
-			{
-				hf = CreateFile(ofn.lpstrFile, GENERIC_READ, 0, (LPSECURITY_ATTRIBUTES)NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, (HANDLE)NULL);
-			}
+			OPENFILENAMEA ofn;      
+      char szFile[512];
 
-			break;
+      ZeroMemory(&ofn, sizeof(ofn));
+      ofn.lStructSize = sizeof(ofn);
+      ofn.hwndOwner = hWnd;
+      ofn.lpstrFile = szFile;
+      ofn.lpstrFile[0] = '\0';
+      ofn.nMaxFile = sizeof(szFile);
+      ofn.lpstrFilter = NULL;//L"All\0*.*\0Text\0*.CPT\0";
+      ofn.nFilterIndex = 1;
+      ofn.lpstrFileTitle = NULL;
+      ofn.nMaxFileTitle = 0;
+      ofn.lpstrInitialDir = NULL;
+      ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+      if (GetOpenFileNameA(&ofn) == TRUE)
+      {        
+        ((ControllerMain *)ctrl)->SendData(szFile);
+      }
+
+      break;
 		}
-
 		break;
+
 	case WM_HSCROLL:
 		returnValue = ctrl->hScroll(wParam, lParam);
 		break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 
@@ -158,14 +163,14 @@ LRESULT CALLBACK WndProcGL(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		returnValue = ctrl->create();
 		break;
 	case WM_PAINT:
-	/*{
-		PAINTSTRUCT ps;
-		HDC hdc = GetDC(hWnd);
-		BeginPaint(hWnd, &ps);
-		GetWindowRect(hWnd, &window);
-		Rectangle(ps.hdc, window.left + 5, window.top + 5, window.right - 10, window.bottom - 10);
-		DefWindowProc(hWnd, message, wParam, lParam);
-	}*/
+	  /*{
+		  PAINTSTRUCT ps;
+		  HDC hdc = GetDC(hWnd);
+		  BeginPaint(hWnd, &ps);
+		  GetWindowRect(hWnd, &window);
+		  Rectangle(ps.hdc, window.left + 5, window.top + 5, window.right - 10, window.bottom - 10);
+		  DefWindowProc(hWnd, message, wParam, lParam);
+	  }*/
 		ctrl->paint();
 		break;
 	case WM_SYSCOMMAND:
@@ -176,15 +181,16 @@ LRESULT CALLBACK WndProcGL(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		returnValue = ctrl->close();
 		break;
 	case WM_SIZE:
-	{
-		//int width = LOWORD(lParam);
-		//int height = HIWORD(lParam);
-		//SetWindowPos(hWnd, 0, 0, 0, width, height, SWP_NOZORDER);
-		//InvalidateRect(hwndForm, 0, TRUE);
-		returnValue = ctrl->size(LOWORD(lParam), HIWORD(lParam), (int)wParam);
-	}
+	  {
+		  //int width = LOWORD(lParam);
+		  //int height = HIWORD(lParam);
+		  //SetWindowPos(hWnd, 0, 0, 0, width, height, SWP_NOZORDER);
+		  //InvalidateRect(hwndForm, 0, TRUE);
+		  returnValue = ctrl->size(LOWORD(lParam), HIWORD(lParam), (int)wParam);
+	  }
 		break;
 	case WM_LBUTTONDOWN:
+    SetFocus(hWnd);
 		returnValue = ctrl->lButtonDown(wParam, LOWORD(lParam), HIWORD(lParam)); // state, x, y
 		break;
 
@@ -193,6 +199,7 @@ LRESULT CALLBACK WndProcGL(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		break;
 
 	case WM_RBUTTONDOWN:
+    SetFocus(hWnd);
 		returnValue = ctrl->rButtonDown(wParam, LOWORD(lParam), HIWORD(lParam)); // state, x, y
 		break;
 
@@ -200,19 +207,25 @@ LRESULT CALLBACK WndProcGL(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		returnValue = ctrl->rButtonUp(wParam, LOWORD(lParam), HIWORD(lParam));   // state, x, y
 		break;
 
-
 	case WM_MOUSEMOVE:
 		returnValue = ctrl->mouseMove(wParam, LOWORD(lParam), HIWORD(lParam));  // state, x, y
 		break;
 
+  case WM_MOUSEWHEEL:
+    returnValue = ctrl->mouseWheel(0, GET_WHEEL_DELTA_WPARAM(wParam), 0, 0);
+    break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return returnValue;
 }
+
+
 
 INT_PTR CALLBACK FormDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -273,7 +286,6 @@ INT_PTR CALLBACK FormDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 	}*/
 		//break;
 	case WM_PAINT:
-
 		DefWindowProc(hwnd, msg, wParam, lParam);
 		break;
 
@@ -283,6 +295,10 @@ INT_PTR CALLBACK FormDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
 	case WM_VSCROLL:
 		break;
+
+  case WM_MOUSEWHEEL:
+    DefWindowProc(hwnd, msg, wParam, lParam);
+    break;
 
 	case WM_SIZE:
 		ctrl->size(LOWORD(lParam), HIWORD(lParam), (int)wParam);

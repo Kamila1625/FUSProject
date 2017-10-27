@@ -40,8 +40,8 @@ int ControllerForm::command(int id, int command, LPARAM msg)
 {
     static bool flag = false;
 
-    switch(id)
-    {
+  //  switch(id)
+    //{
     /*case IDC_ANIMATE:
         if(command == BN_CLICKED)
         {
@@ -71,7 +71,7 @@ int ControllerForm::command(int id, int command, LPARAM msg)
             model->setDrawMode(2);
         }
         break;*/
-    }
+//    }
 
     return 0;
 }
@@ -87,7 +87,7 @@ int ControllerForm::hScroll(WPARAM wParam, LPARAM lParam)
     HWND trackbarHandle = (HWND)lParam;
 
     int position = HIWORD(wParam);              // current tick mark position
-    if(trackbarHandle)
+    if (trackbarHandle)
     {
         // get control ID
         int trackbarId = ::GetDlgCtrlID(trackbarHandle);
@@ -95,38 +95,9 @@ int ControllerForm::hScroll(WPARAM wParam, LPARAM lParam)
         switch(LOWORD(wParam))
         {
         case TB_THUMBTRACK:     // user dragged the slider
-            updateTrackbars(trackbarHandle, position);
-			/*if (trackbarId == IDC_SLIDER1)
-				model->setBackgroundRed(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER2)
-				model->setBackgroundGreen(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER3)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER4)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER5)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER6)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER7)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER8)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER9)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER10)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER11)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER12)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER13)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER14)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER15)
-				model->setBackgroundBlue(position / 255.0f);*/
-            break;
+          updateTrackbars(trackbarHandle, position);
+          UpdateModel(trackbarId, position);             			                          
+          break;
 
         case TB_THUMBPOSITION:  // by WM_LBUTTONUP
             break;
@@ -151,43 +122,84 @@ int ControllerForm::hScroll(WPARAM wParam, LPARAM lParam)
 
         case TB_ENDTRACK:       // by WM_KEYUP (User release a key.)
             position = (int)::SendMessage(trackbarHandle, TBM_GETPOS, 0, 0);
-            updateTrackbars(trackbarHandle, position);
-			/*if (trackbarId == IDC_SLIDER1)
-				model->setBackgroundRed(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER2)
-				model->setBackgroundGreen(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER3)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER4)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER5)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER6)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER7)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER8)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER9)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER10)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER11)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER12)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER13)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER14)
-				model->setBackgroundBlue(position / 255.0f);
-			else if (trackbarId == IDC_SLIDER15)
-				model->setBackgroundBlue(position / 255.0f);*/
+            updateTrackbars(trackbarHandle, position);			
+            UpdateModel(trackbarId, position);
             break;
         }
     }
 
     return 0;
 }
+
+void ControllerForm::UpdateModel(int trackbarId, int position)
+{
+  switch (trackbarId)
+  {
+  case IDC_SLIDER1: // trackbarXLeft
+    model->SetClipPlaneL((float)position / 100.0f, -1, -1);
+    break;
+
+  case IDC_SLIDER2: // trackbarYLeft
+    model->SetClipPlaneL(-1, (float)position / 100.0f, -1);
+    break;
+
+  case IDC_SLIDER3: // trackbarZLeft
+    model->SetClipPlaneL(-1, -1, (float)position / 100.0f);
+    break;
+
+  case IDC_SLIDER4: // trackbarAlpha
+    model->SetAlpha((float)position / 100.0f);
+    break;
+
+  case IDC_SLIDER5: // trackbarXRight
+    model->SetClipPlaneR((float)position / 100.0f, -1, -1);
+    break;
+
+  case IDC_SLIDER6: // trackbarYRight          
+    model->SetClipPlaneR(-1, (float)position / 100.0f, -1);
+    break;
+
+  case IDC_SLIDER7: // trackbarZRight
+    model->SetClipPlaneR(-1, -1, (float)position / 100.0f);
+    break;
+
+  case IDC_SLIDER8: // trackbarPhi
+    model->SetSphereRot((float)position, 400);
+    break;
+
+  case IDC_SLIDER9: // trackbarPsy
+    model->SetSphereRot(400, (float)position);
+    break;
+
+  case IDC_SLIDER10: // trackbarPosX
+    model->SetSpherePos((float)position / 500.0f, -1, -1);
+    break;
+
+  case IDC_SLIDER11: // trackbarPosY
+    model->SetSpherePos(-1, (float)position / 500.0f, -1);
+    break;
+
+  case IDC_SLIDER12: // trackbarPosZ
+    model->SetSpherePos(-1, -1, (float)position / 500.0f);
+    break;
+
+  case IDC_SLIDER13: // trackbarSizeX
+    model->SetSphereScale((float)position / 250.0f, -1, -1);
+    break;
+
+  case IDC_SLIDER14: // trackbarSizeY
+    model->SetSphereScale(-1, (float)position / 250.0f, -1);
+    break;
+
+  case IDC_SLIDER15: // trackbarSizeZ
+    model->SetSphereScale(-1, -1, (float)position / 250.0f);
+    break;
+
+  default:
+    break;
+  }
+}
+
 
 void ControllerForm::updateTrackbars(HWND handle, int position)
 {
@@ -206,7 +218,7 @@ void ControllerForm::updateTrackbars(HWND handle, int position)
 	else if (handle == trackbarYRight.getHandle())
 	{
 		trackbarYRight.setPos(position);
-	}//
+	}
 	else if (handle == trackbarZLeft.getHandle())
 	{
 		trackbarZLeft.setPos(position);

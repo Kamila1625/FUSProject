@@ -99,16 +99,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	::AdjustWindowRectEx(&rect, style, TRUE, styleEx);
 	::SetWindowPos(mainWin.getHandle(), 0, 0, 100, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 
-
-
-
-
 	glWin.show();
 	dialogWin.show();
 	//nCmdShow = SW_MAXIMIZE;
 	mainWin.show(SW_MAXIMIZE);
-	
-
 
 
 	int exitCode;

@@ -6,7 +6,7 @@
 // default contructor
 ///////////////////////////////////////////////////////////////////////////////
 ControllerGL::ControllerGL(ModelGL* model) : model(model), loopFlag(false)
-{
+{  
 }
 
 
@@ -15,10 +15,9 @@ ControllerGL::ControllerGL(ModelGL* model) : model(model), loopFlag(false)
 // handle WM_CLOSE
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::close()
-{
-    // wait for rendering thread is terminated
-    loopFlag = false;
-    glThread.join();
+{    
+    model->Close();
+    wglMakeCurrent(0, 0);             // unset RC
 
     DestroyWindow(handle);
     return 0;
@@ -30,18 +29,11 @@ int ControllerGL::close()
 // handle WM_CREATE
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::create()
-{
-    // create a OpenGL rendering context
-    if(!model->createContext(handle, 32, 24, 8))
-    {
-        return -1;
-    }
+{    
+  // initialize OpenGL states
+  model->Init(handle);        
 
-    // create a thread for OpenGL rendering
-    glThread = std::thread(&ControllerGL::runThread, this);
-    loopFlag = true;
-
-    return 0;
+  return 0;
 }
 
 
@@ -51,7 +43,11 @@ int ControllerGL::create()
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::paint()
 {
-    return 0;
+  model->Response();
+  model->Render();        
+  model->SwapBuffers();
+  
+  return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,55 +59,20 @@ int ControllerGL::command(int id, int cmd, LPARAM msg)
 }
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-// rendering thread
-// initialize OpenGL states and start rendering loop
-///////////////////////////////////////////////////////////////////////////////
-void ControllerGL::runThread()
-{
-    // set the current RC in this thread
-    ::wglMakeCurrent(model->getDC(), model->getRC());
-
-    // initialize OpenGL states
-    model->init();
-    
-    // cofigure projection matrix
-    RECT rect;
-    ::GetClientRect(handle, &rect);
-    model->resizeWindow(rect.right, rect.bottom);
-    
-
-    // rendering loop
-    while(loopFlag)
-    {
-        //std::this_thread::yield();      // yield to other processes or threads
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));  // yield to other processes or threads
-        model->draw();
-		model->swapBuffers();
-    }
-
-    // close OpenGL Rendering Context (RC)
-	model->closeContext(handle);
-    ::wglMakeCurrent(0, 0);             // unset RC
-}
-
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // handle Left mouse down
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::lButtonDown(WPARAM state, int x, int y)
 {
-    // update mouse position
-    model->setMousePosition(x, y);
+  model->UpdateMouseLButton(true);
+  return 0;
+}
 
-    if(state == MK_LBUTTON)
-    {
-        model->setMouseLeft(true);
-    }
 
-    return 0;
+int ControllerGL::SendData(char* filename)
+{
+  model->LoadData(filename);
+  return 0;
 }
 
 
@@ -121,12 +82,8 @@ int ControllerGL::lButtonDown(WPARAM state, int x, int y)
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::lButtonUp(WPARAM state, int x, int y)
 {
-    // update mouse position
-    model->setMousePosition(x, y);
-
-    model->setMouseLeft(false);
-
-    return 0;
+  model->UpdateMouseLButton(false);
+  return 0;
 }
 
 
@@ -136,14 +93,7 @@ int ControllerGL::lButtonUp(WPARAM state, int x, int y)
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::rButtonDown(WPARAM state, int x, int y)
 {
-    // update mouse position
-    model->setMousePosition(x, y);
-
-    if(state == MK_RBUTTON)
-    {
-        model->setMouseRight(true);
-    }
-
+    model->UpdateMouseRButton(true);
     return 0;
 }
 
@@ -154,12 +104,8 @@ int ControllerGL::rButtonDown(WPARAM state, int x, int y)
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::rButtonUp(WPARAM state, int x, int y)
 {
-    // update mouse position
-    model->setMousePosition(x, y);
-
-    model->setMouseRight(false);
-
-    return 0;
+  model->UpdateMouseRButton(false);
+  return 0;
 }
 
 
@@ -169,16 +115,36 @@ int ControllerGL::rButtonUp(WPARAM state, int x, int y)
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::mouseMove(WPARAM state, int x, int y)
 {
-    if(state == MK_LBUTTON)
+    /*if(state == MK_LBUTTON)
     {
         model->rotateCamera(x, y);
     }
     if(state == MK_RBUTTON)
     {
         model->zoomCamera(y);
-    }
+    }*/
+
+  /*static const float rotSpeed = 0.5f;
+
+  if (mouseLButtonDown)
+  {
+    setXRotation(m_xRot + 8 * dmy);
+    setYRotation(m_yRot + 8 * dmx);
+  }
+  else if (mouseRButtonDown)
+  {
+    setXRotation(m_xRot + 8 * dmy);
+    setZRotation(m_zRot + 8 * dmx);
+  }*/
 
     return 0;
+}
+
+int ControllerGL::mouseWheel(int state, int delta, int x, int y) 
+{ 
+  model->UpdateWheelPos(delta);
+  
+  return 0; 
 }
 
 
@@ -188,6 +154,8 @@ int ControllerGL::mouseMove(WPARAM state, int x, int y)
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerGL::size(int w, int h, WPARAM wParam)
 {
-    model->resizeWindow(w, h);
+    model->Resize(w, h);
+    model->Render();
+    model->SwapBuffers();
     return 0;
 }

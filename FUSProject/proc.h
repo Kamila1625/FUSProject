@@ -1,6 +1,7 @@
 #pragma once
 #include <windows.h>
 #include "Controller.h"
+#include "ControllerMain.h"
 
 static bool mouseButtonDown;
 static HINSTANCE globalhInst;

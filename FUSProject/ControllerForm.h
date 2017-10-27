@@ -5,44 +5,46 @@
 #include "Controls.h"
 
 
-    class ControllerForm : public Controller
-    {
-    public:
-        ControllerForm(ModelGL* model);
-        ~ControllerForm() {};
+class ControllerForm : public Controller
+{
+public:
+  ControllerForm(ModelGL* model);
+  ~ControllerForm() {};
 
-        int command(int id, int cmd, LPARAM msg);   // for WM_COMMAND
-        int create();                               // for WM_CREATE
-        int hScroll(WPARAM wParam, LPARAM lParam);  // for WM_HSCROLL
+  int command(int id, int cmd, LPARAM msg);   // for WM_COMMAND
+  int create();                               // for WM_CREATE
+  int hScroll(WPARAM wParam, LPARAM lParam);  // for WM_HSCROLL
 
-		void updateTrackbars(HWND handle, int position);
-		void initControls(HWND handle);
+	void updateTrackbars(HWND handle, int position);
+	void initControls(HWND handle);
 
-    private:
-        ModelGL* model;                             // pointer to model component
-       // ViewFormGL* view;                           // pointer to view component
-		Button addSphere;
-		Button delSphere;
+  void UpdateModel(int trackbarId, int position);
 
-		RadioButton radioSlice;
-		RadioButton radioCube;
+private:
+  ModelGL* model;                             // pointer to model component
 
-		Trackbar trackbarXLeft;
-		Trackbar trackbarXRight;
-		Trackbar trackbarYLeft;
-		Trackbar trackbarYRight;
-		Trackbar trackbarZLeft;
-		Trackbar trackbarZRight;
-		Trackbar trackbarAlpha;
+	Button addSphere;
+	Button delSphere;
 
-		Trackbar trackbarPhi;
-		Trackbar trackbarPsy;
-		Trackbar trackbarPosX;
-		Trackbar trackbarPosY;
-		Trackbar trackbarPosZ;
-		Trackbar trackbarSizeX;
-		Trackbar trackbarSizeY;
-		Trackbar trackbarSizeZ;
-    };
+	RadioButton radioSlice;
+	RadioButton radioCube;
+
+	Trackbar trackbarXLeft;
+	Trackbar trackbarXRight;
+	Trackbar trackbarYLeft;
+	Trackbar trackbarYRight;
+	Trackbar trackbarZLeft;
+	Trackbar trackbarZRight;
+	Trackbar trackbarAlpha;
+
+	Trackbar trackbarPhi;
+	Trackbar trackbarPsy;
+	Trackbar trackbarPosX;
+	Trackbar trackbarPosY;
+	Trackbar trackbarPosZ;
+	Trackbar trackbarSizeX;
+	Trackbar trackbarSizeY;
+	Trackbar trackbarSizeZ;
+};
 
 

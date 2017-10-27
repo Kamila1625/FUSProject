@@ -1,8 +1,13 @@
 #if _WIN32
 #include <windows.h>    // include windows.h to avoid thousands of compile errors even though this class is not depending on Windows
 #endif
-#include <GL/gl.h>
-#include <GL/glu.h>
+
+#include "gl\include\glew.h"
+#include "gl\include\wglew.h"
+
+#pragma comment(lib, "gl\\lib\\glew32s.lib")
+#pragma comment(lib, "opengl32.lib")
+
 #include "ModelGL.h"
 #include "Bmp.h"
 
@@ -11,13 +16,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // default ctor
 ///////////////////////////////////////////////////////////////////////////////
-ModelGL::ModelGL() : windowWidth(0), windowHeight(0), mouseLeftDown(false),
-                     mouseRightDown(false), changeDrawMode(false), drawMode(0),
-                     cameraAngleX(0), cameraAngleY(0), cameraDistance(5),
-                     animateFlag(false), bgFlag(0), frameBuffer(0), bufferSize(0),
-                     windowResized(false)
+ModelGL::ModelGL()
 {
-    bgColor[0] = bgColor[1] = bgColor[2] = bgColor[3] = 0;
+  renderer = new CustomRenderer();
 }
 
 
@@ -27,513 +28,130 @@ ModelGL::ModelGL() : windowWidth(0), windowHeight(0), mouseLeftDown(false),
 ///////////////////////////////////////////////////////////////////////////////
 ModelGL::~ModelGL()
 {
-    // deallocate framebuffer
-    //delete [] frameBuffer;
-    //frameBuffer = 0;
 }
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-// initialize OpenGL states and scene
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::init()
+int ModelGL::Init(HWND hWnd)
 {
-    glShadeModel(GL_SMOOTH);                        // shading mathod: GL_SMOOTH or GL_FLAT
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);          // 4-byte pixel alignment
+  renderer->Init(hWnd);
 
-    // enable /disable features
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    //glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    //glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-
-     // track material ambient and diffuse from surface color, call it before glEnable(GL_COLOR_MATERIAL)
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    //glEnable(GL_COLOR_MATERIAL);
-
-    glClearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);   // background color
-    glClearStencil(0);                              // clear stencil buffer
-    glClearDepth(1.0f);                             // 0 is near, 1 is far
-    glDepthFunc(GL_LEQUAL);
-
-    initLights();
-    setCamera(0, 0, 8, 0, 0, 0);
-    listId = createEarthDL();
+  return 1;
 }
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-// initialize lights
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::initLights()
+HDC ModelGL::GetDC(void)
 {
-    // set up light colors (ambient, diffuse, specular)
-    GLfloat lightKa[] = {.0f, .0f, .0f, 1.0f};      // ambient light
-    GLfloat lightKd[] = {.9f, .9f, .9f, 1.0f};      // diffuse light
-    GLfloat lightKs[] = {1, 1, 1, 1};               // specular light
-    glLightfv(GL_LIGHT0, GL_AMBIENT, lightKa);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightKd);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightKs);
-
-    // position the light
-    float lightPos[4] = {-10, 0, 5, 0};
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-
-    glEnable(GL_LIGHT0);                            // MUST enable each light source after configuration
+  return renderer->hDC;
 }
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-// set camera position and lookat direction
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::setCamera(float posX, float posY, float posZ, float targetX, float targetY, float targetZ)
+HGLRC ModelGL::GetRC(void)
 {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(posX, posY, posZ, targetX, targetY, targetZ, 0, 1, 0); // eye(x,y,z), focal(x,y,z), up(x,y,z)
+  return renderer->hRC;
 }
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-// configure projection and viewport
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::setViewport(int w, int h)
+void ModelGL::Render(void)
 {
-    // assign the width/height of viewport
-    windowWidth = w;
-    windowHeight = h;
-    //bufferSize = w * h * 4; // rgba
-    //frameBuffer = new unsigned char [bufferSize];
+  renderer->Render();
+}
 
-    // set viewport to be the entire window
-    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+void ModelGL::SwapBuffers(void)
+{
+  renderer->CopyFrame();
+}
 
-    // set perspective viewing frustum
-    float aspectRatio = (float)w / h;
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(60.0f, (float)(w)/h, 0.1f, 20.0f); // FOV, AspectRatio, NearClip, FarClip
+void ModelGL::Close(void)
+{
+  renderer->Close();
+}
 
-    // switch to modelview matrix in order to set scene
-    glMatrixMode(GL_MODELVIEW);
+void ModelGL::Resize(int w, int h)
+{
+  renderer->Resize(w, h);
+}
+
+void ModelGL::UpdateWheelPos(int wheelPos)
+{
+  renderer->UpdateWheelPos(wheelPos);
 }
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-// toggle to resize window
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::resizeWindow(int w, int h)
+void ModelGL::Response()
 {
-    // assign the width/height of viewport
-    windowWidth = w;
-    windowHeight = h;
-    windowResized = true;
+  renderer->Response();
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// draw 2D/3D scene
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::draw()
+void ModelGL::UpdateMouseLButton(bool value)
 {
-    static float angle = 0;
-
-    if(windowResized)
-    {
-        setViewport(windowWidth, windowHeight);
-        windowResized = false;
-    }
-
-    // clear buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    // save the initial ModelView matrix before modifying ModelView matrix
-    glPushMatrix();
-
-    // tramsform camera
-    glTranslatef(0, 0, cameraDistance);
-    glRotatef(cameraAngleX, 1, 0, 0);   // pitch
-    glRotatef(cameraAngleY, 0, 1, 0);   // heading
-
-    glPushMatrix(); // draw sphere
-        if(animateFlag) angle += 0.5f;
-        //glRotatef(angle, 0.0f, 1.0f, 0.0f);
-        glRotatef(angle, 0.39875f, 0.91706f, 0.0f);
-        glCallList(listId);     // render with display list
-    glPopMatrix();
-
-    glPopMatrix();
-
-    // read color framebuffer
-    //glReadBuffer(GL_BACK);
-    //glReadPixels(0, 0, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)frameBuffer);
-
-    //for (int i = 0; i < bufferSize; i+=4)
-    //{
-    //    frameBuffer[i] = (unsigned char)255;
-    //    frameBuffer[i+1] = 16;
-    //    frameBuffer[i+2] = 16;
-    //}
-    //glDrawPixels(windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)frameBuffer);
-
-    if(changeDrawMode)
-    {
-        if(drawMode == 0)           // fill mode
-        {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glEnable(GL_DEPTH_TEST);
-            glEnable(GL_CULL_FACE);
-        }
-        else if(drawMode == 1)      // wireframe mode
-        {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE);
-        }
-        else if(drawMode == 2)      // point mode
-        {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE);
-        }
-    }
-
-    // check if background colour was changed
-    if(bgFlag)
-    {
-        glClearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);
-        bgFlag = false;
-    }
+  renderer->mouseLButtonDown = value;
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// compile a sphere with texturemap in a DL
-///////////////////////////////////////////////////////////////////////////////
-GLuint ModelGL::createEarthDL()
+void ModelGL::UpdateMouseRButton(bool value)
 {
-    // set material
-    GLfloat matAmbient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    GLfloat matDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    GLfloat matSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    GLfloat matShininess[] = { 10.0f };
-    glMaterialfv(GL_FRONT, GL_AMBIENT, matAmbient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, matDiffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, matSpecular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, matShininess);
-
-    // create a sphere which is a quadric object
-    GLUquadricObj *sphere = gluNewQuadric();
-    GLuint sphereTex = loadTextureBmp("earth.bmp");
-    GLuint envTex = loadTextureBmp("envmap01_512.bmp");
-    gluQuadricDrawStyle(sphere, GLU_FILL); // GLU_FILL, GLU_LINE, GLU_SILHOUETTE, GLU_POINT
-    gluQuadricTexture(sphere, GL_TRUE);
-    gluQuadricNormals(sphere, GL_SMOOTH);
-    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-
-    GLuint id = glGenLists(1);
-    glNewList(id, GL_COMPILE);  // create display list for the sphere
-        //glDisable(GL_DEPTH_TEST);
-        //glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        glBindTexture(GL_TEXTURE_2D, sphereTex);
-        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glPushMatrix();
-
-        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-        glRotatef(23.5f, 0.0f, 1.0f, 0.0f);
-        gluSphere(sphere, 1.0, 50, 50); // radius, slice, stack
-
-/*
-        glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
-        glBindTexture(GL_TEXTURE_2D, envTex);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_TEXTURE_GEN_S);
-        glEnable(GL_TEXTURE_GEN_T);
-        gluSphere(sphere, 1.0, 50, 50); // radius, slice, stack
-        glDisable(GL_TEXTURE_GEN_S);
-        glDisable(GL_TEXTURE_GEN_T);
-*/
-        glPopMatrix();
-        //glEnable(GL_DEPTH_TEST);
-    glEndList();
-
-    return id;
+  renderer->mouseRButtonDown = value;
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// load a BMP as texture
-///////////////////////////////////////////////////////////////////////////////
-unsigned int ModelGL::loadTextureBmp(const char* fileName)
+void ModelGL::LoadData(char* filename)
 {
-    int chans, x, y;
-    void* buf;
-    Image::Bmp bmp;
-
-    bmp.read(fileName);
-    x = bmp.getWidth();
-    y = bmp.getHeight();
-    chans = bmp.getBitCount() / 8;
-    buf = (void*)bmp.getDataRGB();
-
-    // gen texture ID
-    GLuint texture;
-    glGenTextures(1, &texture);
-
-    // set active texture and configure it
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // select modulate to mix texture with color for shading
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // if wrap is true, the texture wraps over at the edges (repeat)
-    //       ... false, the texture ends at the edges (clamp)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // build our texture mipmaps
-    switch(chans)
-    {
-    case 1:
-        gluBuild2DMipmaps(GL_TEXTURE_2D, chans, x, y, GL_LUMINANCE, GL_UNSIGNED_BYTE, buf);
-        break;
-    case 3:
-        gluBuild2DMipmaps(GL_TEXTURE_2D, chans, x, y, GL_RGB, GL_UNSIGNED_BYTE, buf);
-        break;
-    case 4:
-        gluBuild2DMipmaps(GL_TEXTURE_2D, chans, x, y, GL_RGBA, GL_UNSIGNED_BYTE, buf);
-        break;
-    }
-
-    return texture;
+  renderer->LoadData(filename, true);
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// rotate the camera
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::rotateCamera(int x, int y)
+void ModelGL::SetRect(int w, int h)
 {
-    if(mouseLeftDown)
-    {
-        cameraAngleY += (x - mouseX);
-        cameraAngleX += (y - mouseY);
-        mouseX = x;
-        mouseY = y;
-    }
+  renderer->w = w;
+  renderer->h = h;
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// zoom the camera
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::zoomCamera(int delta)
+void ModelGL::SetAlpha(float alpha)
 {
-    if(mouseRightDown)
-    {
-        cameraDistance += (delta - mouseY) * 0.05f;
-        mouseY = delta;
-    }
+  renderer->opacity = alpha;
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// change drawing mode
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::setDrawMode(int mode)
+void ModelGL::SetClipPlaneL(float x, float y, float z)
 {
-    if(drawMode != mode)
-    {
-        changeDrawMode = true;
-        drawMode = mode;
-    }
+  if (x >= 0)
+    renderer->clipPlaneXL = x;
+  else if (y >= 0)
+    renderer->clipPlaneYL = y;
+  else if (z >= 0)
+    renderer->clipPlaneZL = z;
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// change background colour, the value should be between 0 and 1
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::setBackgroundRed(float value)
+void ModelGL::SetClipPlaneR(float x, float y, float z)
 {
-    if(bgColor[0] != value)
-    {
-        bgColor[0] = value;
-        bgFlag = true;
-    }
-}
-void ModelGL::setBackgroundGreen(float value)
-{
-    if(bgColor[1] != value)
-    {
-        bgColor[1] = value;
-        bgFlag = true;
-    }
-}
-void ModelGL::setBackgroundBlue(float value)
-{
-    if(bgColor[2] != value)
-    {
-        bgColor[2] = value;
-        bgFlag = true;
-    }
+  if (x >= 0)
+    renderer->clipPlaneXR = x;
+  else if (y >= 0)
+    renderer->clipPlaneYR = y;
+  else if (z >= 0)
+    renderer->clipPlaneZR = z;
 }
 
-void ModelGL::closeContext(HWND handle)
+void ModelGL::SetSpherePos(float x, float y, float z)
 {
-	if (!hdc || !hglrc)
-		return;
-
-	// delete DC and RC
-	::wglMakeCurrent(0, 0);
-	::wglDeleteContext(hglrc);
-	::ReleaseDC(handle, hdc);
-
-	hdc = 0;
-	hglrc = 0;
+  if (x >= 0)
+    renderer->spherePos.x = x;
+  else if (y >= 0)
+    renderer->spherePos.y = y;
+  else if (z >= 0)
+    renderer->spherePos.z = z;
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// create OpenGL rendering context
-///////////////////////////////////////////////////////////////////////////////
-bool ModelGL::createContext(HWND handle, int colorBits, int depthBits, int stencilBits)
+void ModelGL::SetSphereScale(float x, float y, float z)
 {
-	// retrieve a handle to a display device context
-	hdc = ::GetDC(handle);
-
-	// set pixel format
-	if (!setPixelFormat(hdc, colorBits, depthBits, stencilBits))
-	{
-		::MessageBox(0, L"Cannot set a suitable pixel format.", L"Error", MB_ICONEXCLAMATION | MB_OK);
-		::ReleaseDC(handle, hdc);                     // remove device context
-		return false;
-	}
-
-	// create a new OpenGL rendering context
-	hglrc = ::wglCreateContext(hdc);
-	//::wglMakeCurrent(hdc, hglrc);
-
-	::ReleaseDC(handle, hdc);
-	return true;
+  if (x >= 0)
+    renderer->sphereScale.x = x;
+  else if (y >= 0)
+    renderer->sphereScale.y = y;
+  else if (z >= 0)
+    renderer->sphereScale.z = z;
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// choose pixel format
-// By default, pdf.dwFlags is set PFD_DRAW_TO_WINDOW, PFD_DOUBLEBUFFER and PFD_SUPPORT_OPENGL.
-///////////////////////////////////////////////////////////////////////////////
-bool ModelGL::setPixelFormat(HDC hdc, int colorBits, int depthBits, int stencilBits)
+void ModelGL::SetSphereRot(float x, float y)
 {
-	PIXELFORMATDESCRIPTOR pfd;
-
-	// find out the best matched pixel format
-	int pixelFormat = findPixelFormat(hdc, colorBits, depthBits, stencilBits);
-	if (pixelFormat == 0)
-		return false;
-
-	// set members of PIXELFORMATDESCRIPTOR with given mode ID
-	::DescribePixelFormat(hdc, pixelFormat, sizeof(pfd), &pfd);
-
-	// set the fixel format
-	if (!::SetPixelFormat(hdc, pixelFormat, &pfd))
-		return false;
-
-	return true;
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// find the best pixel format
-///////////////////////////////////////////////////////////////////////////////
-int ModelGL::findPixelFormat(HDC hdc, int colorBits, int depthBits, int stencilBits)
-{
-	int currMode;                               // pixel format mode ID
-	int bestMode = 0;                           // return value, best pixel format
-	int currScore = 0;                          // points of current mode
-	int bestScore = 0;                          // points of best candidate
-	PIXELFORMATDESCRIPTOR pfd;
-
-	// search the available formats for the best mode
-	bestMode = 0;
-	bestScore = 0;
-	for (currMode = 1; ::DescribePixelFormat(hdc, currMode, sizeof(pfd), &pfd) > 0; ++currMode)
-	{
-		// ignore if cannot support opengl
-		if (!(pfd.dwFlags & PFD_SUPPORT_OPENGL))
-			continue;
-
-		// ignore if cannot render into a window
-		if (!(pfd.dwFlags & PFD_DRAW_TO_WINDOW))
-			continue;
-
-		// ignore if cannot support rgba mode
-		if ((pfd.iPixelType != PFD_TYPE_RGBA) || (pfd.dwFlags & PFD_NEED_PALETTE))
-			continue;
-
-		// ignore if not double buffer
-		if (!(pfd.dwFlags & PFD_DOUBLEBUFFER))
-			continue;
-
-		// try to find best candidate
-		currScore = 0;
-
-		// colour bits
-		if (pfd.cColorBits >= colorBits) ++currScore;
-		if (pfd.cColorBits == colorBits) ++currScore;
-
-		// depth bits
-		if (pfd.cDepthBits >= depthBits) ++currScore;
-		if (pfd.cDepthBits == depthBits) ++currScore;
-
-		// stencil bits
-		if (pfd.cStencilBits >= stencilBits) ++currScore;
-		if (pfd.cStencilBits == stencilBits) ++currScore;
-
-		// alpha bits
-		if (pfd.cAlphaBits > 0) ++currScore;
-
-		// check if it is best mode so far
-		if (currScore > bestScore)
-		{
-			bestScore = currScore;
-			bestMode = currMode;
-		}
-	}
-
-	return bestMode;
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-// swap OpenGL frame buffers
-///////////////////////////////////////////////////////////////////////////////
-void ModelGL::swapBuffers()
-{
-	::SwapBuffers(hdc);
+  if (x <= 360)
+    renderer->sphereRot.x = x;
+  else if (y <= 360)
+    renderer->sphereRot.y = y;
 }

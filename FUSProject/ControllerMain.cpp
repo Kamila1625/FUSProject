@@ -4,6 +4,8 @@
 #include "ControllerMain.h"
 #include "resource.h"
 
+#include "ControllerGL.h"
+
 bool CALLBACK enumerateChildren(HWND childHandle, LPARAM lParam);
 
 
@@ -67,10 +69,9 @@ int ControllerMain::size(int width, int height, WPARAM wParam)
 
 	SetWindowPos(hwndGL, 0, 0, 0, width - formWidth, height, SWP_NOZORDER);
 	SetWindowPos(hwndForm, 0, width - formWidth, 0, formWidth, formHeight, SWP_NOZORDER);
-	InvalidateRect(hwndForm, 0, TRUE);      // force to repaint
-												 
+	InvalidateRect(hwndForm, 0, TRUE);      // force to repaint											 
 
-    return 0;
+  return 0;
 }
 
 bool CALLBACK enumerateChildren(HWND handle, LPARAM lParam)
@@ -81,4 +82,11 @@ bool CALLBACK enumerateChildren(HWND handle, LPARAM lParam)
     }
 
     return true;
+}
+
+void ControllerMain::SendData(char *fileName)
+{
+  ControllerGL *ctrl = (ControllerGL *)GetWindowLongPtr(hwndGL, GWLP_USERDATA);
+
+  ctrl->SendData(fileName);
 }
