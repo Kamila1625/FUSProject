@@ -26,8 +26,11 @@ private:
 	Button addSphere;
 	Button delSphere;
 
-	RadioButton radioSlice;
-	RadioButton radioCube;
+	Button buttonCube;
+	Button buttonSlices;
+
+	//RadioButton radioSlice;
+	//RadioButton radioCube;
 
 	Trackbar trackbarXLeft;
 	Trackbar trackbarXRight;

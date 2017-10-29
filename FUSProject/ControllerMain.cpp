@@ -68,7 +68,7 @@ int ControllerMain::size(int width, int height, WPARAM wParam)
 	int glHeight = rect.bottom - rect.top;
 
 	SetWindowPos(hwndGL, 0, 0, 0, width - formWidth, height, SWP_NOZORDER);
-	SetWindowPos(hwndForm, 0, width - formWidth, 0, formWidth, formHeight, SWP_NOZORDER);
+	SetWindowPos(hwndForm, 0, width - formWidth, 0, formWidth, height, SWP_NOZORDER);
 	InvalidateRect(hwndForm, 0, TRUE);      // force to repaint											 
 
   return 0;

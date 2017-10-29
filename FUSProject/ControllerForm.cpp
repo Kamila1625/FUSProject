@@ -272,8 +272,11 @@ void ControllerForm::initControls(HWND handle)
 	addSphere.set(handle, ID_ADD);
 	delSphere.set(handle, ID_DEL);
 
-	radioCube.set(handle, IDC_RADIO2);
-	radioSlice.set(handle, IDC_RADIO1);
+	buttonCube.set(handle, ID_CUBE);
+	buttonSlices.set(handle, ID_SLICES);
+
+	//radioCube.set(handle, IDC_RADIO2);
+	//radioSlice.set(handle, IDC_RADIO1);
 
 	trackbarXLeft.set(handle, IDC_SLIDER1);
 	trackbarXRight.set(handle, IDC_SLIDER5);
@@ -292,7 +295,7 @@ void ControllerForm::initControls(HWND handle)
 	trackbarSizeY.set(handle, IDC_SLIDER14);
 	trackbarSizeZ.set(handle, IDC_SLIDER15);
 
-	radioCube.check();
+	//radioCube.check();
 
 	trackbarPhi.setRange(-90, 90);
 	trackbarPsy.setRange(-90, 90);
