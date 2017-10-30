@@ -29,6 +29,8 @@ private:
 	Button buttonCube;
 	Button buttonSlices;
 
+	Button buttonCoord;
+
 	//RadioButton radioSlice;
 	//RadioButton radioCube;
 

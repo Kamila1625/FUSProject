@@ -38,40 +38,45 @@ int ControllerForm::create()
 ///////////////////////////////////////////////////////////////////////////////
 int ControllerForm::command(int id, int command, LPARAM msg)
 {
-    static bool flag = false;
+    //static bool flag = false;
 
-  //  switch(id)
-    //{
-    /*case IDC_ANIMATE:
+    switch(id)
+    {
+    case ID_ADD:
         if(command == BN_CLICKED)
         {
-            flag = !flag;
-            model->animate(flag);
-            view->animate(flag);
+            
         }
         break;
 
-    case IDC_FILL:
+    case ID_DEL:
         if(command == BN_CLICKED)
         {
-            model->setDrawMode(0);
+            
         }
         break;
 
-    case IDC_WIREFRAME:
+    case ID_CUBE:
         if(command == BN_CLICKED)
         {
-            model->setDrawMode(1);
+            
         }
         break;
 
-    case IDC_POINT:
+    case ID_SLICES:
         if(command == BN_CLICKED)
         {
-            model->setDrawMode(2);
+            
         }
-        break;*/
-//    }
+        break;
+
+	case ID_SK:
+		if (command == BN_CLICKED)
+		{
+			
+		}
+		break;
+    }
 
     return 0;
 }
@@ -274,6 +279,8 @@ void ControllerForm::initControls(HWND handle)
 
 	buttonCube.set(handle, ID_CUBE);
 	buttonSlices.set(handle, ID_SLICES);
+
+	buttonCoord.set(handle, ID_SK);
 
 	//radioCube.set(handle, IDC_RADIO2);
 	//radioSlice.set(handle, IDC_RADIO1);
