@@ -282,6 +282,8 @@ void ControllerForm::initControls(HWND handle)
 
 	buttonCoord.set(handle, ID_SK);
 
+	buttonScan.set(handle, ID_SKAN);
+
 	//radioCube.set(handle, IDC_RADIO2);
 	//radioSlice.set(handle, IDC_RADIO1);
 
