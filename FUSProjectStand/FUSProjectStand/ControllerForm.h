@@ -2,13 +2,14 @@
 #include "Controls.h"
 #include "Controller.h"
 //#include "ModelGL.h"
-
+#include "Ellipse.h"
+#include "Data.h"
 
 class ControllerForm : public Controller
 {
 public:
   //ControllerForm(ModelGL* model);
-	ControllerForm();
+	ControllerForm(Data* d);
   ~ControllerForm() {};
 
   int command(int id, int cmd, LPARAM msg);   // for WM_COMMAND
@@ -20,13 +21,18 @@ public:
 
   void UpdateModel(int trackbarId, int position);
 
+  void ReturnEllipseText(EllipseData* data);
+
 private:
 	//ModelGL* model;                             // pointer to model component
-	HWND hwndForm;                               // handle of form dialog
+	//HWND hwndForm;                               // handle of form dialog
+	Data* data;
 	Button buttonLoadLib;
 	Button buttonLoadData;
 	Button buttonSendData;
 	Button buttonStopLib;
+	TextBox ellipseText;
+	HINSTANCE libModule;
 };
 
 

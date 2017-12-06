@@ -116,6 +116,7 @@
   <ItemGroup>
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="ControllerForm.cpp" />
+    <ClCompile Include="Data.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="proc.cpp" />
     <ClCompile Include="StandDialog.cpp" />
@@ -124,6 +125,8 @@
     <ClInclude Include="Controller.h" />
     <ClInclude Include="ControllerForm.h" />
     <ClInclude Include="Controls.h" />
+    <ClInclude Include="Data.h" />
+    <ClInclude Include="Ellipse.h" />
     <ClInclude Include="proc.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StandDialog.h" />

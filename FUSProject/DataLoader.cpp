@@ -1,5 +1,4 @@
 #include <memory.h>
-
 #include "dataloader.h"
 
 DataLoader::DataLoader()

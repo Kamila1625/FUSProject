@@ -15,7 +15,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	commonCtrls.dwICC = ICC_BAR_CLASSES;        // trackbar is in this class
 	::InitCommonControlsEx(&commonCtrls);
 
-	ControllerForm formCtrl;
+	Data d;
+	ControllerForm formCtrl(&d);
 	StandDialog dlWnd(hInstance, IDD_DIALOG1, 0, &formCtrl);
 	dlWnd.setWidth(300);
 	dlWnd.setHeight(200);

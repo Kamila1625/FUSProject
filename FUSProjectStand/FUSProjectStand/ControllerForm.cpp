@@ -1,13 +1,19 @@
-#include <process.h>                              
+#include <process.h>
+#include <locale>
+#include <string>
+#include <iostream>
+
 #include "ControllerForm.h"
 #include "resource.h"
+
+ControllerForm* globalCtrlForEllipse;
 
 ///////////////////////////////////////////////////////////////////////////////
 // default contructor
 ///////////////////////////////////////////////////////////////////////////////
-ControllerForm::ControllerForm()
+ControllerForm::ControllerForm(Data* d)
 {
-
+	data = d;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,6 +23,8 @@ int ControllerForm::create()
 {
     // initialize all controls
     initControls(handle);
+
+	globalCtrlForEllipse = this;
 
     // place the opengl form dialog in right place, bottome of the opengl rendering window
     //RECT rect = {0, 0, 4, 8};
@@ -30,11 +38,26 @@ int ControllerForm::create()
 void ControllerForm::initControls(HWND handle)
 {
 	// set all controls
-	hwndForm = handle;
+	handle = handle;
 	buttonLoadLib.set(handle, ID_LOAD_LIB);
 	buttonLoadData.set(handle, ID_LOAD_DATA);
 	buttonSendData.set(handle, ID_SEND_DATA);
 	buttonStopLib.set(handle, ID_STOP_LIB);
+	ellipseText.set(handle, IDC_EDIT1);
+}
+
+void ControllerForm::ReturnEllipseText(EllipseData* data)
+{
+	SetForegroundWindow(handle); //возврат фокуса и передний план для стенда
+
+	std::wstring_convert< std::codecvt<wchar_t, char, std::mbstate_t> > conv;
+	std::string str;
+	str = "(" + std::to_string(data->center[0]) + ", " + std::to_string(data->center[1]) + ", " + std::to_string(data->center[2]) + "), ";
+	str = str + "(" + std::to_string(data->angles[0]) + ", " + std::to_string(data->angles[1]) + ")";
+
+	std::wstring wstr = conv.from_bytes(str);
+
+	ellipseText.setText(const_cast<wchar_t*>(wstr.c_str()));
 }
 
 
@@ -50,8 +73,11 @@ int ControllerForm::command(int id, int command, LPARAM msg)
     case ID_LOAD_LIB:
         if(command == BN_CLICKED)
         {
-			
-
+			//libModule = LoadLibrary((LPCTSTR)"Lib.dll");
+			//if (libModule == NULL)
+			//{
+				//error!!!
+			//}
         }
         break;
 
@@ -63,7 +89,7 @@ int ControllerForm::command(int id, int command, LPARAM msg)
 
 			ZeroMemory(&ofn, sizeof(ofn));
 			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = hwndForm;
+			ofn.hwndOwner = handle;
 			ofn.lpstrFile = szFile;
 			ofn.lpstrFile[0] = '\0';
 			ofn.nMaxFile = sizeof(szFile);
@@ -74,24 +100,53 @@ int ControllerForm::command(int id, int command, LPARAM msg)
 			ofn.lpstrInitialDir = NULL;
 			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
+			int res = 0;
 			if (GetOpenFileNameA(&ofn) == TRUE)
 			{
-				//((ControllerMain *)ctrl)->SendData(szFile);
+				res = data->ReadData(szFile);
 			}
+			//res = res + 1;
         }
         break;
 
     case ID_SEND_DATA:
         if(command == BN_CLICKED)
         {
-            
+			//some test
+			EllipseData dataTest;
+			dataTest.center[0] = 2;
+			dataTest.center[1] = 4;
+			dataTest.center[2] = 8;
+			dataTest.angles[0] = 2.5f;
+			dataTest.angles[1] = 3.18f;
+
+			ReturnEllipseText(&dataTest);
+
+
+            //start fus project!!!
+			void* dataToSend = data->GetDataPointer();
+			if (dataToSend == NULL)
+			{
+				//some test
+				EllipseData dataTest;
+				dataTest.center[0] = 3;
+				dataTest.center[1] = 4;
+				dataTest.center[2] = 5;
+				dataTest.angles[0] = 0.0f;
+				dataTest.angles[1] = 0.18f;
+
+				ReturnEllipseText(&dataTest);
+			}
         }
         break;
 
     case ID_STOP_LIB:
         if(command == BN_CLICKED)
         {
-            
+			//if (libModule != NULL)
+			//{
+				//FreeLibrary(libModule);
+			//}
         }
         break;
     }
@@ -230,3 +285,9 @@ void ControllerForm::updateTrackbars(HWND handle, int position)
 	}*/
 }
 
+void PrintEllipse(EllipseData* data)
+{
+	//передать данные
+	//вернуть окну стенда управление и фокус 
+	globalCtrlForEllipse->ReturnEllipseText(data);
+}
