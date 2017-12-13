@@ -48,7 +48,7 @@ HWND WindowGL::create()
 		instance,             // application instance
 		(LPVOID)controller);  // window creation data
 
-				//this->show(SW_SHOWDEFAULT);                     // make it visible
+				//this->show(SW_SHOWDEFAULT);                     // make it visible  
 
 	return handle;
 }

@@ -1,13 +1,15 @@
 #pragma once
 
 #include "CustomRenderer.h"
+#include "FusExport.h"
 
 class ModelGL
 {
   
 public:
   CustomRenderer *renderer;
-  
+  SendEllipseDataFunction sendEllipseFunc;
+
   ModelGL();
   ~ModelGL();
 
@@ -33,7 +35,7 @@ public:
 
   void UpdateMouseRButton(bool value);
 
-  void LoadData(char* filename);
+  void LoadData(char* filename, long dataLen = 0);
 
   void SetRect(int w, int h);
 
@@ -48,5 +50,9 @@ public:
   void SetSphereScale(float x, float y, float z);
 
   void SetSphereRot(float x, float y);
+
+  void ChangeCoordinateState(void);  
+
+  void SendEllipseData();
 };
 

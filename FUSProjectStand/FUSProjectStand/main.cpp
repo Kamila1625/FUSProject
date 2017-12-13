@@ -9,8 +9,8 @@
 int mainMessageLoop(HACCEL hAccelTable = 0);
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-	INITCOMMONCONTROLSEX commonCtrls;
+{	  
+  INITCOMMONCONTROLSEX commonCtrls;
 	commonCtrls.dwSize = sizeof(commonCtrls);
 	commonCtrls.dwICC = ICC_BAR_CLASSES;        // trackbar is in this class
 	::InitCommonControlsEx(&commonCtrls);

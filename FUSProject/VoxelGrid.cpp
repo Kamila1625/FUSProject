@@ -110,8 +110,8 @@ unsigned char *VoxelGrid::GenerateDataArray(int *gridW, int *gridH, int *gridD)
     {
       for (int i = 0, iReal = 0; i < width; i += multX, iReal++)
       {
-        data[k * newW * newH + jReal * newW + iReal] = //(unsigned char)(((float)j / height) * 256);
-            voxels[kReal].sliceVoxels[4 * (j * width + i) + 0];
+        data[k * newW * newH + jReal * newW + iReal] = 
+            voxels[kReal].sliceVoxels[4 * (j * width + i) + 0] * (voxels[kReal].sliceVoxels[4 * (j * width + i) + 3] / 0xFF);
       }  
     }  
   }  

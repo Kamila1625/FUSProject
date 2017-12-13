@@ -53,10 +53,10 @@
     <ClInclude Include="ControllerForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Ellipse.h">
+    <ClInclude Include="Data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Data.h">
+    <ClInclude Include="FusExport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

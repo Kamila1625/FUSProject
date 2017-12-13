@@ -84,9 +84,11 @@ bool CALLBACK enumerateChildren(HWND handle, LPARAM lParam)
     return true;
 }
 
-void ControllerMain::SendData(char *fileName)
+void ControllerMain::SendData(char *fileName, long dataLen)
 {
   ControllerGL *ctrl = (ControllerGL *)GetWindowLongPtr(hwndGL, GWLP_USERDATA);
+  /* Check */
+  HGLRC cont = wglGetCurrentContext();
 
-  ctrl->SendData(fileName);
+  ctrl->SendData(fileName, dataLen);
 }

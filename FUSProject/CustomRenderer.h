@@ -17,7 +17,9 @@ public:
   DataLoader *sliceLoader;
 
   bool mouseLButtonDown, mouseRButtonDown, 
-    isShowCube, volumeInited;
+    isShowCube, 
+    volumeInited, sliceInited,
+    isCoordShown, isCoordInited;
 
   float opacity;
   float clipPlaneXL, clipPlaneXR;
@@ -28,13 +30,20 @@ public:
 
   ~CustomRenderer();  
 
-  void LoadData(const char *filePath, bool showCube);
+  void LoadData(const char *filePath, bool showCube, long dataLen = 0);
 
   void UpdateWheelPos(int wheelPos);
   
+  void CoordSetup();
+
+  void CleanData(void);
+
+  void GetEllipseData(int *center, float *scale, float *angles);
+
   /* Custom functions */
 
   void CustomInit(void);
+  void CustomCoordInit(void);
   void CustomCubeInit(void);
   void CustomSphereInit(void);
   void CustomSlicesInit(void);
@@ -98,13 +107,19 @@ public:
   GLint sphereScaleParam;
   
 
+  GLuint sysCoordVAO;
+
 private:  
+  char savedFilePath[512];
+
   bool dataLinked;
   float stepSize;
 
   float hAngle, vAngle;
   float distDelta;
   glm::vec3 pos;  
+
+  int dataW, dataH, dataD;
 
   float m_xRot;
   float m_yRot;
@@ -118,7 +133,11 @@ private:
 
   GLuint InitTexture(GLuint texWidth, GLuint texHeight);
 
-  void InitShaders(void);
+  void InitVolumeTexture(void);
+
+  void InitVolumeShaders(void);
+
+  void InitSliceShaders(void);
 
   void InitFrameBuffer(GLuint texWidth, GLuint texHeight);
 

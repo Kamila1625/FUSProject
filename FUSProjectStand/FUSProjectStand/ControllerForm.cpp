@@ -3,10 +3,18 @@
 #include <string>
 #include <iostream>
 
+#include "FusExport.h"
 #include "ControllerForm.h"
 #include "resource.h"
 
 ControllerForm* globalCtrlForEllipse;
+
+// Globals
+
+void __stdcall SendEllipseData(const EllipseData *data)
+{
+  globalCtrlForEllipse->ReturnEllipseText(data);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // default contructor
@@ -46,18 +54,26 @@ void ControllerForm::initControls(HWND handle)
 	ellipseText.set(handle, IDC_EDIT1);
 }
 
-void ControllerForm::ReturnEllipseText(EllipseData* data)
+void ControllerForm::ReturnEllipseText(const EllipseData* data)
 {
 	SetForegroundWindow(handle); //возврат фокуса и передний план для стенда
 
 	std::wstring_convert< std::codecvt<wchar_t, char, std::mbstate_t> > conv;
 	std::string str;
 	str = "(" + std::to_string(data->center[0]) + ", " + std::to_string(data->center[1]) + ", " + std::to_string(data->center[2]) + "), ";
+  str = str + "(" + std::to_string(data->scale[0]) + ", " + std::to_string(data->scale[1]) + ", " + std::to_string(data->scale[2]) + "), ";
 	str = str + "(" + std::to_string(data->angles[0]) + ", " + std::to_string(data->angles[1]) + ")";
 
 	std::wstring wstr = conv.from_bytes(str);
 
-	ellipseText.setText(const_cast<wchar_t*>(wstr.c_str()));
+	ellipseText.setText(const_cast<wchar_t*>(wstr.c_str())); 
+}
+
+void ControllerForm::InitLibFunctions()
+{
+  initFunc = (InitFunction)GetProcAddress(libModule, "_Init@8");
+  sendDataFunc = (SendDataFunction)GetProcAddress(libModule, "_SendData@8");
+  stopFunc = (StopFunction)GetProcAddress(libModule, "_Stop@0");
 }
 
 
@@ -73,80 +89,88 @@ int ControllerForm::command(int id, int command, LPARAM msg)
     case ID_LOAD_LIB:
         if(command == BN_CLICKED)
         {
-			//libModule = LoadLibrary((LPCTSTR)"Lib.dll");
-			//if (libModule == NULL)
-			//{
-				//error!!!
-			//}
+			    libModule = LoadLibraryA("FUSProject.dll");
+          InitLibFunctions();
+          //char buffer[MAX_PATH];
+          //GetModuleFileNameA(NULL, buffer, MAX_PATH);
+			    if (libModule == NULL)
+			    {
+            printf("Error");
+            return -1;
+			    } 
+          else 
+          {
+            SendEllipseDataFunction func = &SendEllipseData;
+            initFunc(handle, func);
+          }          
         }
         break;
 
     case ID_LOAD_DATA:
         if(command == BN_CLICKED)
         {
-			OPENFILENAMEA ofn;
-			char szFile[512];
+			    OPENFILENAMEA ofn;
+			    char szFile[512];
 
-			ZeroMemory(&ofn, sizeof(ofn));
-			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = handle;
-			ofn.lpstrFile = szFile;
-			ofn.lpstrFile[0] = '\0';
-			ofn.nMaxFile = sizeof(szFile);
-			ofn.lpstrFilter = NULL;//L"All\0*.*\0Text\0*.CPT\0";
-			ofn.nFilterIndex = 1;
-			ofn.lpstrFileTitle = NULL;
-			ofn.nMaxFileTitle = 0;
-			ofn.lpstrInitialDir = NULL;
-			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+			    ZeroMemory(&ofn, sizeof(ofn));
+			    ofn.lStructSize = sizeof(ofn);
+			    ofn.hwndOwner = handle;
+			    ofn.lpstrFile = szFile;
+			    ofn.lpstrFile[0] = '\0';
+			    ofn.nMaxFile = sizeof(szFile);
+			    ofn.lpstrFilter = NULL;//L"All\0*.*\0Text\0*.CPT\0";
+			    ofn.nFilterIndex = 1;
+			    ofn.lpstrFileTitle = NULL;
+			    ofn.nMaxFileTitle = 0;
+			    ofn.lpstrInitialDir = NULL;
+			    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-			int res = 0;
-			if (GetOpenFileNameA(&ofn) == TRUE)
-			{
-				res = data->ReadData(szFile);
-			}
-			//res = res + 1;
+			    int res = 0;
+			    if (GetOpenFileNameA(&ofn) == TRUE)
+			    {
+				    res = data->ReadData(szFile);
+			    }
+			    //res = res + 1;
         }
         break;
 
     case ID_SEND_DATA:
         if(command == BN_CLICKED)
         {
-			//some test
-			EllipseData dataTest;
-			dataTest.center[0] = 2;
-			dataTest.center[1] = 4;
-			dataTest.center[2] = 8;
-			dataTest.angles[0] = 2.5f;
-			dataTest.angles[1] = 3.18f;
+			    //some test
+			    /*EllipseData dataTest;
+			    dataTest.center[0] = 2;
+			    dataTest.center[1] = 4;
+			    dataTest.center[2] = 8;
+			    dataTest.angles[0] = 2.5f;
+			    dataTest.angles[1] = 3.18f;
 
-			ReturnEllipseText(&dataTest);
+			    //ReturnEllipseText(&dataTest);*/
 
+          sendDataFunc(data->GetDataPointer(), data->GetDataSize());
+			    //if (dataToSend == NULL)
+			    //{
+				   // //some test
+				   // EllipseData dataTest;
+				   // dataTest.center[0] = 3;
+				   // dataTest.center[1] = 4;
+				   // dataTest.center[2] = 5;
+				   // dataTest.angles[0] = 0.0f;
+				   // dataTest.angles[1] = 0.18f;
 
-            //start fus project!!!
-			void* dataToSend = data->GetDataPointer();
-			if (dataToSend == NULL)
-			{
-				//some test
-				EllipseData dataTest;
-				dataTest.center[0] = 3;
-				dataTest.center[1] = 4;
-				dataTest.center[2] = 5;
-				dataTest.angles[0] = 0.0f;
-				dataTest.angles[1] = 0.18f;
-
-				ReturnEllipseText(&dataTest);
-			}
+				   // ReturnEllipseText(&dataTest);
+			    //}
         }
         break;
 
     case ID_STOP_LIB:
         if(command == BN_CLICKED)
         {
-			//if (libModule != NULL)
-			//{
-				//FreeLibrary(libModule);
-			//}
+		      if (libModule != NULL)
+		      {
+            stopFunc();
+            FreeLibrary(libModule);
+		      }
         }
         break;
     }
@@ -283,11 +307,4 @@ void ControllerForm::updateTrackbars(HWND handle, int position)
 	{
 		trackbarSizeZ.setPos(position);
 	}*/
-}
-
-void PrintEllipse(EllipseData* data)
-{
-	//передать данные
-	//вернуть окну стенда управление и фокус 
-	globalCtrlForEllipse->ReturnEllipseText(data);
 }

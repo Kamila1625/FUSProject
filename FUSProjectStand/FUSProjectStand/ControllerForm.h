@@ -2,8 +2,9 @@
 #include "Controls.h"
 #include "Controller.h"
 //#include "ModelGL.h"
-#include "Ellipse.h"
 #include "Data.h"
+
+#include "FusExport.h"
 
 class ControllerForm : public Controller
 {
@@ -21,7 +22,9 @@ public:
 
   void UpdateModel(int trackbarId, int position);
 
-  void ReturnEllipseText(EllipseData* data);
+  void ReturnEllipseText(const EllipseData* data);
+
+  void InitLibFunctions();
 
 private:
 	//ModelGL* model;                             // pointer to model component
@@ -33,6 +36,8 @@ private:
 	Button buttonStopLib;
 	TextBox ellipseText;
 	HINSTANCE libModule;
+
+  InitFunction initFunc;
+  SendDataFunction sendDataFunc;
+  StopFunction stopFunc;
 };
-
-

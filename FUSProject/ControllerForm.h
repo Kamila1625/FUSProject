@@ -31,7 +31,7 @@ private:
 
 	Button buttonCoord;
 
-	Button buttonScan;
+  Button buttonScan;
 
 	//RadioButton radioSlice;
 	//RadioButton radioCube;

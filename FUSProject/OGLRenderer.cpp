@@ -42,9 +42,8 @@ void OGLRenderer::Init(HWND hWnd)
   {
     MessageBox(hWnd, L"Too bad!....", L"ERROR", MB_OK | MB_ICONSTOP);
     exit(0);
-  }
-
-  /* Build-up context */
+  }  
+  
   HGLRC tempHRC = wglCreateContext(hDC);
   wglMakeCurrent(hDC, tempHRC);
 
@@ -66,7 +65,7 @@ void OGLRenderer::Init(HWND hWnd)
     exit(0);
   }
 
-  int attributes[] = 
+  int attributes[] =
   {
     WGL_CONTEXT_MAJOR_VERSION_ARB, 3,                              // MAJOR version of OpenGL
     WGL_CONTEXT_MINOR_VERSION_ARB, 2,                              // MINOR version of OpenGL
@@ -75,20 +74,55 @@ void OGLRenderer::Init(HWND hWnd)
   };
 
   /* If the OpenGL 3.x context creation extension is available */
-  if (wglewIsSupported("WGL_ARB_create_context") == 1) 
-  { 
+  if (wglewIsSupported("WGL_ARB_create_context") == 1)
+  {
     hRC = wglCreateContextAttribsARB(hDC, NULL, attributes);
     wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(tempHRC); 
+    wglDeleteContext(tempHRC);
     wglMakeCurrent(hDC, hRC);
   }
   else // OpenGL ver. is < 2.0
   {
     hRC = tempHRC;
-  }  
+  }
 
   /* User function */
   CustomInit();
+}
+
+void OGLRenderer::ResetRenderingContext(bool cleanUp)
+{
+  hDC = GetDC(hWnd);
+  if (cleanUp)
+  {
+    wglDeleteContext(hRC);
+    wglMakeCurrent(NULL, NULL);
+  }
+
+  /* Build-up context */
+  HGLRC tempHRC = wglCreateContext(hDC);
+  wglMakeCurrent(hDC, tempHRC);
+  
+  int attributes[] =
+  {
+    WGL_CONTEXT_MAJOR_VERSION_ARB, 3,                              // MAJOR version of OpenGL
+    WGL_CONTEXT_MINOR_VERSION_ARB, 2,                              // MINOR version of OpenGL
+    WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, // forward compatible context
+    0
+  };
+
+  /* If the OpenGL 3.x context creation extension is available */
+  if (wglewIsSupported("WGL_ARB_create_context") == 1)
+  {
+    hRC = wglCreateContextAttribsARB(hDC, NULL, attributes);
+    wglMakeCurrent(NULL, NULL);
+    wglDeleteContext(tempHRC);
+    wglMakeCurrent(hDC, hRC);
+  }
+  else // OpenGL ver. is < 2.0
+  {
+    hRC = tempHRC;
+  }
 }
 
 

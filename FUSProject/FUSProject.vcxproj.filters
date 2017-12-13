@@ -45,9 +45,6 @@
     <ClCompile Include="ModelGL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bmp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CustomRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -100,9 +97,6 @@
     <ClInclude Include="ModelGL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Bmp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CustomRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -116,6 +110,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Hifu_capture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FusExport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

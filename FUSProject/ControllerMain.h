@@ -18,7 +18,7 @@
         int destroy();
         int size(int w, int h, WPARAM wParam);      // for WM_SIZE: width, height, type(SIZE_MAXIMIZED...)
 
-        void SendData(char *fileName);
+        void SendData(char *fileName, long dataLen = 0);
 		
     private:
 		HWND hwndGL;                              // handle of gl window

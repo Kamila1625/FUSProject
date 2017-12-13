@@ -9,6 +9,8 @@ class DataLoader
 {
 private:
   FILE *file;
+  const char *data;
+  int dataShift;
   bool isLoaded;
   
   VoxelGrid *voxelGrid;
@@ -16,11 +18,18 @@ private:
   int LoadHeaderData();
   
   int LoadSliceData(int sliceNumber);
+
+  int LoadHeaderDataInternal();
+
+  int LoadSliceDataInternal(int sliceNumber);
+  
   
 public:  
   DataLoader();
   
   int LoadData(const char *filePath);
+
+  int LoadDataInternal(const char *data, long dataLen);
 
   bool IsLoaded() { return isLoaded; }
   

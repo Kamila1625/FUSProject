@@ -64,6 +64,9 @@ public:
 
   /* Full screen function */
   void SetFullScreen(bool goToFS);
+
+  /* Reset rendering context */
+  void ResetRenderingContext(bool cleanUp = false);
 };
 
 #endif /* _OGLRENDERER_H_ */

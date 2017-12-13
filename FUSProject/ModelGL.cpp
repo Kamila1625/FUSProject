@@ -9,7 +9,6 @@
 #pragma comment(lib, "opengl32.lib")
 
 #include "ModelGL.h"
-#include "Bmp.h"
 
 
 
@@ -92,9 +91,9 @@ void ModelGL::UpdateMouseRButton(bool value)
   renderer->mouseRButtonDown = value;
 }
 
-void ModelGL::LoadData(char* filename)
+void ModelGL::LoadData(char* filename, long dataLen)
 {
-  renderer->LoadData(filename, true);
+  renderer->LoadData(filename, true, dataLen);
 }
 
 void ModelGL::SetRect(int w, int h)
@@ -154,4 +153,25 @@ void ModelGL::SetSphereRot(float x, float y)
     renderer->sphereRot.x = x;
   else if (y <= 360)
     renderer->sphereRot.y = y;
+}
+
+void ModelGL::ChangeCoordinateState(void)
+{
+  renderer->isCoordShown = !renderer->isCoordShown;
+  renderer->CoordSetup();
+}
+
+void ModelGL::SendEllipseData()
+{
+  int pos[3] = { 0 };
+  float scale[3] = { 0.0 };
+  float angles[2] = { 0.0 };
+  renderer->GetEllipseData(pos, scale, angles);
+  EllipseData *data = new EllipseData();
+
+  memcpy(data->center, pos, sizeof(int) * 3);
+  memcpy(data->scale, scale, sizeof(float) * 3);
+  memcpy(data->angles, angles, sizeof(float) * 2);
+  (*sendEllipseFunc)(data);
+  delete data;
 }

@@ -3,10 +3,14 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// default contructor
+// default contructors
 ///////////////////////////////////////////////////////////////////////////////
-ControllerGL::ControllerGL(ModelGL* model) : model(model), loopFlag(false)
+ControllerGL::ControllerGL() : model(NULL), loopFlag(false)
 {  
+}
+
+ControllerGL::ControllerGL(ModelGL* model) : model(model), loopFlag(false)
+{
 }
 
 
@@ -69,9 +73,9 @@ int ControllerGL::lButtonDown(WPARAM state, int x, int y)
 }
 
 
-int ControllerGL::SendData(char* filename)
-{
-  model->LoadData(filename);
+int ControllerGL::SendData(char* filename, long dataLen)
+{  
+  model->LoadData(filename, dataLen);
   return 0;
 }
 
@@ -158,4 +162,11 @@ int ControllerGL::size(int w, int h, WPARAM wParam)
     model->Render();
     model->SwapBuffers();
     return 0;
+}
+
+
+void ControllerGL::SetInitData(HWND hWnd, SendEllipseDataFunction sendEllFunc)
+{
+  parentHwnd = hWnd;
+  model->sendEllipseFunc = sendEllFunc;
 }

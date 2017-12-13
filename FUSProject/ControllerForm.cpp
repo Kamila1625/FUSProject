@@ -64,19 +64,24 @@ int ControllerForm::command(int id, int command, LPARAM msg)
         break;
 
     case ID_SLICES:
-        if(command == BN_CLICKED)
-        {
+      if(command == BN_CLICKED)
+      {
             
-        }
-        break;
-
-	case ID_SK:
-		if (command == BN_CLICKED)
-		{
-			
-		}
-		break;
-    }
+      }
+      break;
+    case ID_SK:
+	    if (command == BN_CLICKED)
+	    {
+        model->ChangeCoordinateState();
+	    }
+	    break;
+    case ID_SKAN:
+      if (command == BN_CLICKED)
+      {
+        model->SendEllipseData();
+      }
+      break;
+      }
 
     return 0;
 }
@@ -169,11 +174,11 @@ void ControllerForm::UpdateModel(int trackbarId, int position)
     break;
 
   case IDC_SLIDER8: // trackbarPhi
-    model->SetSphereRot((float)position, 400);
+    model->SetSphereRot((float)position - 90, 400);
     break;
 
   case IDC_SLIDER9: // trackbarPsy
-    model->SetSphereRot(400, (float)position);
+    model->SetSphereRot(400, (float)position - 90);
     break;
 
   case IDC_SLIDER10: // trackbarPosX
@@ -282,7 +287,7 @@ void ControllerForm::initControls(HWND handle)
 
 	buttonCoord.set(handle, ID_SK);
 
-	buttonScan.set(handle, ID_SKAN);
+  buttonScan.set(handle, ID_SKAN);
 
 	//radioCube.set(handle, IDC_RADIO2);
 	//radioSlice.set(handle, IDC_RADIO1);
@@ -306,8 +311,8 @@ void ControllerForm::initControls(HWND handle)
 
 	//radioCube.check();
 
-	trackbarPhi.setRange(-90, 90);
-	trackbarPsy.setRange(-90, 90);
+	trackbarPhi.setRange(0, 180);
+	trackbarPsy.setRange(0, 180);
 	trackbarPosX.setRange(0, 500);
 	trackbarPosY.setRange(0, 500);
 	trackbarPosZ.setRange(0, 500);
@@ -331,8 +336,8 @@ void ControllerForm::initControls(HWND handle)
 	trackbarZRight.setPos(100);
 	trackbarAlpha.setPos(0);
 
-	trackbarPhi.setPos(0);
-	trackbarPsy.setPos(0);
+	trackbarPhi.setPos(90);
+	trackbarPsy.setPos(90);
 	trackbarPosX.setPos(249);
 	trackbarPosY.setPos(249);
 	trackbarPosZ.setPos(249);

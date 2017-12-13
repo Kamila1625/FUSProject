@@ -15,6 +15,9 @@ CustomRenderer::CustomRenderer()
   mouseRButtonDown = false;
   dataLinked = false;
   volumeInited = false;
+  sliceInited = false;
+  isCoordShown = false;
+  isCoordInited = false;
 
   hAngle = 0;
   vAngle = 0;
@@ -45,8 +48,52 @@ CustomRenderer::~CustomRenderer()
 
 
 
-void CustomRenderer::CustomInit()
+void CustomRenderer::CustomInit(void)
 {  
+}
+
+void CustomRenderer::GetEllipseData(int *center, float *scale, float *angles)
+{
+  center[0] = (int)(spherePos.x * dataW);
+  center[1] = (int)(spherePos.y * dataH);
+  center[2] = (int)(spherePos.z * dataD);
+
+  scale[0] = sphereScale.x;
+  scale[1] = sphereScale.y;
+  scale[2] = sphereScale.z;
+
+  angles[0] = sphereRot.x;
+  angles[1] = sphereRot.y;
+}
+
+
+void CustomRenderer::CustomCoordInit(void)
+{
+  /*** Init VBOs ***/
+  GLfloat vertices[18] = {
+    0.0, 0.0, 0.0,// 1.0, 0.0, 0.0,
+    5.0, 0.0, 0.0,// 1.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,// 0.0, 1.0, 0.0,
+    0.0, 5.0, 0.0,// 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0,// 0.0, 0.0, 1.0,
+    0.0, 0.0, 5.0//, 0.0, 0.0, 1.0
+  };  
+  
+  GLuint gbo;
+
+  glGenBuffers(1, &gbo);  
+  glGenVertexArrays(1, &sysCoordVAO);
+  glBindVertexArray(sysCoordVAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, gbo);
+  glBufferData(GL_ARRAY_BUFFER, 18 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);      
+  
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLfloat *)NULL);
+  glEnableVertexAttribArray(0);
+  //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+  //glEnableVertexAttribArray(1);  
+
+  isCoordInited = true;
 }
 
 
@@ -126,7 +173,7 @@ void CustomRenderer::CustomSphereInit(void)
 
 
 void CustomRenderer::CustomCubeInit()
-{
+{   
   /*** Init VBOs ***/
   GLfloat vertices[24] = {
     0.0, 0.0, 0.0,
@@ -181,11 +228,9 @@ void CustomRenderer::CustomCubeInit()
   glBindBuffer(GL_ARRAY_BUFFER, vertexdat);  // the vertex location is the same as the vertex color
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLfloat *)NULL);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLfloat *)NULL);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veridxdat);
-  
-  InitShaders();  
-  dataLinked = true;
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veridxdat);     
 }
+
 
 void CustomRenderer::CustomSlicesInit()
 {
@@ -224,26 +269,16 @@ void CustomRenderer::CustomSlicesInit()
     glBindVertexArray(slicesVAO[i]);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffObject);
-    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-    // used in glDrawElement()
+    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);    
+    
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffObject);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), indices, GL_STATIC_DRAW);
-    
-    // vao like a closure binding 3 buffer object: verlocdat vercoldat and veridxdat
-    
-    //glEnableVertexAttribArray(0); // for vertexloc
-    //glEnableVertexAttribArray(1); // for vertexcol
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), indices, GL_STATIC_DRAW);                
 
-    //glBindBuffer(GL_ARRAY_BUFFER, vertexBuffObject);  // the vertex location is the same as the vertex color
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)NULL);
     glEnableVertexAttribArray(0);
-    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)NULL);
-    //glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffObject);
-    //glBindVertexArray(0);
-
+    
     currStep += sliceStep;
   }   
   
@@ -252,59 +287,85 @@ void CustomRenderer::CustomSlicesInit()
   glBindTexture(GL_TEXTURE_2D_ARRAY, slicesTextureArray);  
   glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, texW, texH, slicesNum);
   
-  //unsigned char *sd = new unsigned char[sliceSize * slicesNum];  
-  {
-    //glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, i, 0, texW, texH, 1, GL_RED, GL_UNSIGNED_BYTE, sliceData + currSlicePos);
-    //for (int i = 0; i < slicesNum; i++)
-      //memset(sd + sliceSize * i, (256 / slicesNum) * i, sliceSize);
-    
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, texW, texH, slicesNum - 1, GL_RED, GL_UNSIGNED_BYTE, sliceData);
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, slicesNum - 1, texW, texH, 1, GL_RED, GL_UNSIGNED_BYTE, sliceData + sliceSize * (slicesNum - 1));
-    //currSlicePos += sliceSize;
-  }
-  //delete[] sd;
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, texW, texH, slicesNum - 1, GL_RED, GL_UNSIGNED_BYTE, sliceData);
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, slicesNum - 1, texW, texH, 1, GL_RED, GL_UNSIGNED_BYTE, sliceData + sliceSize * (slicesNum - 1));
     
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  // Shader params
-  slicesShaderProgram = LoadShader("shader\\slices.vert", "shader\\slices.frag");
-  mvpSliceParam = glGetUniformLocation(slicesShaderProgram, "MVP");
-  screenSizeSliceParam = glGetUniformLocation(slicesShaderProgram, "ScreenSize");
-  opacitySliceParam = glGetUniformLocation(slicesShaderProgram, "Opacity");
-  currSampleSliceParam = glGetUniformLocation(slicesShaderProgram, "CurrSample");
-  texArraySliceParam = glGetUniformLocation(slicesShaderProgram, "TexArray");
-
-  dataLinked = true;  
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);    
 
   delete[] sliceData;
 }
 
 
-void CustomRenderer::LoadData(const char *filePath, bool showCube)
+void CustomRenderer::LoadData(const char *filePath, bool showCube, long dataLen)
 {
+  const char *loadedFilePath = filePath;
   int errCode;
 
-  isShowCube = showCube;
-  if (showCube)
+  if (dataLen == 0)
   {
-    errCode = modelLoader->LoadData(filePath);    
+    if (filePath != 0)
+      memcpy(savedFilePath, filePath, 512 * sizeof(char));
+    else
+      loadedFilePath = savedFilePath;
+  }    
+
+  isShowCube = showCube;    
+  if (showCube && !volumeInited)
+  {
+    if (dataLen != 0)
+      errCode = modelLoader->LoadDataInternal(filePath, dataLen);
+    else 
+      errCode = modelLoader->LoadData(loadedFilePath);
     CustomCubeInit();    
+    InitVolumeShaders();
     CustomSphereInit();
   }
-  else 
+  else if (!sliceInited)
   {
-    errCode = sliceLoader->LoadData(filePath);
+    if (dataLen != 0)
+      errCode = sliceLoader->LoadDataInternal(filePath, dataLen);
+    else
+      errCode = sliceLoader->LoadData(loadedFilePath);     
     CustomSlicesInit();
+    InitSliceShaders();
   }
 
+  if (isCoordShown && !isCoordInited)
+    CustomCoordInit();  
   dataLinked = true;
 }
 
+void CustomRenderer::CleanData()
+{
+  // Volume cleaning
 
-void CustomRenderer::InitShaders(void)
+  // Slice cleaning
+}
+
+
+void CustomRenderer::CoordSetup()
+{
+  if (!isCoordInited)
+    CustomCoordInit();
+}
+
+
+void CustomRenderer::InitVolumeTexture(void)
+{
+  dataW = 0;
+  dataH = 0;
+  dataD = 0;
+  unsigned char *data = modelLoader->GenerateDataArray(&dataW, &dataH, &dataD);
+
+  volumeTexture = LoadVolumeTexture(data, dataW, dataH, dataD);
+  delete[] data;
+}
+
+
+void CustomRenderer::InitVolumeShaders(void)
 {
   /*** Init shaders ***/
   backShaderProgram = LoadShader("shader\\backface.vert", "shader\\backface.frag");
@@ -315,11 +376,7 @@ void CustomRenderer::InitShaders(void)
   backfaceTexture = InitTexture(w, h);
   frontfaceTexture = InitTexture(w, h);
 
-  int dataW = 0, dataH = 0, dataD = 0;
-  unsigned char *data = modelLoader->GenerateDataArray(&dataW, &dataH, &dataD);
-
-  volumeTexture = LoadVolumeTexture(data, dataW, dataH, dataD);
-  delete[] data;
+  InitVolumeTexture();
 
   /* Init buffers */
   InitFrameBuffer(w, h);
@@ -327,6 +384,21 @@ void CustomRenderer::InitShaders(void)
   InitShaderParams();
 
   volumeInited = true;
+}
+
+
+void CustomRenderer::InitSliceShaders(void)
+{
+  // Shader params
+  slicesShaderProgram = LoadShader("shader\\slices.vert", "shader\\slices.frag");
+  
+  mvpSliceParam = glGetUniformLocation(slicesShaderProgram, "MVP");
+  screenSizeSliceParam = glGetUniformLocation(slicesShaderProgram, "ScreenSize");
+  opacitySliceParam = glGetUniformLocation(slicesShaderProgram, "Opacity");
+  currSampleSliceParam = glGetUniformLocation(slicesShaderProgram, "CurrSample");
+  texArraySliceParam = glGetUniformLocation(slicesShaderProgram, "TexArray");
+
+  sliceInited = true;
 }
 
 
@@ -392,7 +464,7 @@ void CustomRenderer::CustomRender(void)
 }
 
 void CustomRenderer::CustomCubeRender(void)
-{
+{   
   //  transform the box
   glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)w / h, 0.1f, 400.f);
   glm::mat4 view = glm::lookAt(pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -452,6 +524,19 @@ void CustomRenderer::CustomCubeRender(void)
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, w, h);    
   
+
+  if (isCoordShown)
+  {
+    glUseProgram(frontShaderProgram);
+
+    glUniformMatrix4fv(mvpFrontfaceParam, 1, GL_FALSE, &mvp[0][0]);
+
+    glBindVertexArray(sysCoordVAO);
+    glDrawElements(GL_LINES, 3, GL_UNSIGNED_INT, (GLuint *)NULL);
+
+    glUseProgram(0);
+  }
+
   /*** Volume shader step ***/
 
   glm::mat4 sphereRotMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-sphereRot.x), glm::vec3(0.1f, 0.0f, 0.0f));
@@ -473,9 +558,7 @@ void CustomRenderer::CustomCubeRender(void)
   glDisable(GL_BLEND);
 
   glEnable(GL_CULL_FACE);
-  glUseProgram(0);
-
-  
+  glUseProgram(0);  
 }
 
 void CustomRenderer::CustomSlicesRender(void)

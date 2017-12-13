@@ -8,6 +8,7 @@ Data::~Data()
 Data::Data()
 {
 	imageData = NULL;
+  dataSize = -1;
 }
 
 int Data::ReadData(const char *filePath)
@@ -18,20 +19,20 @@ int Data::ReadData(const char *filePath)
 		return errCode;
 	}
 	//узнать размер
-	long size;
+	
 	fseek(file, 0, SEEK_END);
-	size = ftell(file);
+  dataSize = ftell(file);
 	fseek(file, 0, SEEK_SET);
 	//выделить память
-	imageData = new unsigned char[size];
+	imageData = new unsigned char[dataSize];
 	if (imageData == NULL)
 	{
 		fclose(file);
 		return -100;
 	}
 	//прочесть
-	int res = fread(imageData, 1, size, file);
-	if (res != size)
+	int res = fread(imageData, 1, dataSize, file);
+	if (res != dataSize)
 	{
 		fclose(file);
 		return -200;
@@ -41,7 +42,7 @@ int Data::ReadData(const char *filePath)
 	return 0;
 }
 
-void* Data::GetDataPointer()
+void *Data::GetDataPointer()
 {
 	return (void*)(imageData);
 }
