@@ -271,6 +271,9 @@ INT_PTR CALLBACK FormDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 		//break;
 	case WM_COMMAND:
 		ctrl->command(LOWORD(wParam), HIWORD(wParam), lParam);
+		InvalidateRect(hwnd, 0, TRUE);
+		UpdateWindow(hwnd);
+		//TODO
 		break;
 	//case WM_CTLCOLORSTATIC:
 	/*{

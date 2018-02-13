@@ -4,6 +4,12 @@
 #include "ModelGL.h"
 #include "Controls.h"
 
+enum EditTypeText
+{
+	CUBE_TYPE,
+	SPHERE_TYPE, 
+	NULL_TYPE,
+};
 
 class ControllerForm : public Controller
 {
@@ -14,6 +20,8 @@ public:
   int command(int id, int cmd, LPARAM msg);   // for WM_COMMAND
   int create();                               // for WM_CREATE
   int hScroll(WPARAM wParam, LPARAM lParam);  // for WM_HSCROLL
+
+  void SetEditText(EditTypeText type);
 
 	void updateTrackbars(HWND handle, int position);
 	void initControls(HWND handle);
@@ -26,15 +34,23 @@ private:
 	Button addSphere;
 	Button delSphere;
 
+	Button addCube;
+	Button delCube;
+
 	Button buttonCube;
 	Button buttonSlices;
 
 	Button buttonCoord;
 
-  Button buttonScan;
+    Button buttonScan;
+
+	TextBox editCubeSphere;
+	TextBox scanFreqText;
 
 	//RadioButton radioSlice;
 	//RadioButton radioCube;
+
+	Trackbar trackbarFreq;
 
 	Trackbar trackbarXLeft;
 	Trackbar trackbarXRight;

@@ -1,8 +1,8 @@
 #include <process.h>                              
 #include "ControllerForm.h"
 #include "resource.h"
-
-
+#include <string>
+#include <locale>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,25 @@ int ControllerForm::create()
     return 0;
 }
 
-
+void ControllerForm::SetEditText(EditTypeText type)
+{
+	std::wstring_convert< std::codecvt<wchar_t, char, std::mbstate_t> > conv;
+	std::string str;
+	if (type == CUBE_TYPE)
+	{
+		str = "Cube edited";
+	}
+	else if (type == SPHERE_TYPE)
+	{
+		str = "Sphere edited";
+	}
+	else if (type == NULL_TYPE)
+	{
+		str = " ";
+	}
+	std::wstring wstr = conv.from_bytes(str);
+	editCubeSphere.setText(const_cast<wchar_t*>(wstr.c_str()));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // handle WM_COMMAND
@@ -39,22 +57,56 @@ int ControllerForm::create()
 int ControllerForm::command(int id, int command, LPARAM msg)
 {
     //static bool flag = false;
-
+	//TODO кнопки не появялются сразу же, только по мыше
     switch(id)
     {
     case ID_ADD:
         if(command == BN_CLICKED)
         {
-            
+			addSphere.disable();
+			delSphere.enable();
+			addCube.disable();
+			delCube.disable();
+			buttonScan.enable();
+			SetEditText(CUBE_TYPE);
         }
         break;
 
     case ID_DEL:
         if(command == BN_CLICKED)
         {
-            
+			addSphere.enable();
+			delSphere.disable();
+			addCube.enable();
+			delCube.disable();
+			buttonScan.disable();
+			SetEditText(NULL_TYPE);
         }
         break;
+
+	case ID_ADD_CUBE:
+		if (command == BN_CLICKED)
+		{
+			addSphere.disable();
+			delSphere.disable();
+			addCube.disable();
+			delCube.enable();
+			buttonScan.enable();
+			SetEditText(SPHERE_TYPE);
+		}
+		break;
+
+	case ID_DEL_CUBE:
+		if (command == BN_CLICKED)
+		{
+			addSphere.enable();
+			delSphere.disable();
+			addCube.enable();
+			delCube.disable();
+			buttonScan.disable();
+			SetEditText(NULL_TYPE);
+		}
+		break;
 
     case ID_CUBE:
         if(command == BN_CLICKED)
@@ -72,17 +124,17 @@ int ControllerForm::command(int id, int command, LPARAM msg)
     case ID_SK:
 	    if (command == BN_CLICKED)
 	    {
-        model->ChangeCoordinateState();
+			model->ChangeCoordinateState();
 	    }
 	    break;
-    case ID_SKAN:
+    case ID_SKAN_CUBE:
       if (command == BN_CLICKED)
       {
-        model->SendEllipseData();
+		model->SendEllipseData();
+		//else: CubeData
       }
       break;
       }
-
     return 0;
 }
 
@@ -106,7 +158,16 @@ int ControllerForm::hScroll(WPARAM wParam, LPARAM lParam)
         {
         case TB_THUMBTRACK:     // user dragged the slider
           updateTrackbars(trackbarHandle, position);
-          UpdateModel(trackbarId, position);             			                          
+
+		  if (trackbarHandle == trackbarFreq.getHandle())
+		  {
+			  //передаваемый параметр = position
+			  //поменять значение в scanFreqText
+		  }
+		  else
+		  {
+			  UpdateModel(trackbarId, position);
+		  }      			                          
           break;
 
         case TB_THUMBPOSITION:  // by WM_LBUTTONUP
@@ -273,6 +334,10 @@ void ControllerForm::updateTrackbars(HWND handle, int position)
 	{
 		trackbarSizeZ.setPos(position);
 	}
+	else if (handle == trackbarFreq.getHandle())
+	{
+		trackbarFreq.setPos(position);
+	}
 }
 
 void ControllerForm::initControls(HWND handle)
@@ -282,15 +347,21 @@ void ControllerForm::initControls(HWND handle)
 	addSphere.set(handle, ID_ADD);
 	delSphere.set(handle, ID_DEL);
 
+	addCube.set(handle, ID_ADD_CUBE);
+	delCube.set(handle, ID_DEL_CUBE);
+
 	buttonCube.set(handle, ID_CUBE);
 	buttonSlices.set(handle, ID_SLICES);
 
 	buttonCoord.set(handle, ID_SK);
 
-  buttonScan.set(handle, ID_SKAN);
+	buttonScan.set(handle, ID_SKAN_CUBE);
 
 	//radioCube.set(handle, IDC_RADIO2);
 	//radioSlice.set(handle, IDC_RADIO1);
+
+	editCubeSphere.set(handle, IDC_EDIT1);
+	scanFreqText.set(handle, IDC_EDIT_FREQ);
 
 	trackbarXLeft.set(handle, IDC_SLIDER1);
 	trackbarXRight.set(handle, IDC_SLIDER5);
@@ -308,8 +379,12 @@ void ControllerForm::initControls(HWND handle)
 	trackbarSizeX.set(handle, IDC_SLIDER13);
 	trackbarSizeY.set(handle, IDC_SLIDER14);
 	trackbarSizeZ.set(handle, IDC_SLIDER15);
+	trackbarFreq.set(handle, IDC_SLIDER16);
 
 	//radioCube.check();
+
+	trackbarFreq.setRange(0, 100);
+	trackbarFreq.setPos(0);
 
 	trackbarPhi.setRange(0, 180);
 	trackbarPsy.setRange(0, 180);
@@ -344,7 +419,6 @@ void ControllerForm::initControls(HWND handle)
 	trackbarSizeX.setPos(249);
 	trackbarSizeY.setPos(249);
 	trackbarSizeZ.setPos(249);
-
 
 }
 

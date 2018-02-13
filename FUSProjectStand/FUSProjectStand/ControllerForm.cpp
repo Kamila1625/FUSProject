@@ -50,8 +50,11 @@ void ControllerForm::initControls(HWND handle)
 	buttonLoadLib.set(handle, ID_LOAD_LIB);
 	buttonLoadData.set(handle, ID_LOAD_DATA);
 	buttonSendData.set(handle, ID_SEND_DATA);
+	buttonSendData2.set(handle, ID_SEND_DATA2);
 	buttonStopLib.set(handle, ID_STOP_LIB);
 	ellipseText.set(handle, IDC_EDIT1);
+	cubeText.set(handle, IDC_EDIT2);
+	freqText.set(handle, IDC_EDIT3);
 }
 
 void ControllerForm::ReturnEllipseText(const EllipseData* data)

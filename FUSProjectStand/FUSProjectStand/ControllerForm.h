@@ -33,8 +33,11 @@ private:
 	Button buttonLoadLib;
 	Button buttonLoadData;
 	Button buttonSendData;
+	Button buttonSendData2;
 	Button buttonStopLib;
 	TextBox ellipseText;
+	TextBox cubeText;
+	TextBox freqText;
 	HINSTANCE libModule;
 
   InitFunction initFunc;
